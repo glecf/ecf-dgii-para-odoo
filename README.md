@@ -23,7 +23,7 @@ Necesitas Odoo 17 y la localización dominicana:
 
 ```bash
 git clone -b 17.0 https://github.com/indexa-git/l10n-dominicana.git
-git clone -b 17.0 <este repositorio>
+git clone -b 17.0 https://github.com/jorgeyhg/odoo-facturacion-electronica.git
 ```
 
 Añade las dos carpetas al `addons_path` de Odoo, actualiza la lista de
