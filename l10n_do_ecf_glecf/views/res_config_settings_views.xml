@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_glecf" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.glecf</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='invoicing_settings']" position="before">
+                <block title="Electronic invoicing (e-CF)" id="glecf_settings">
+                    <setting id="glecf_connection" string="GLECF connection"
+                             help="GLECF signs your e-CF with your certificate and sends them to the DGII.">
+                        <div class="mt8">
+                            <a href="https://glecf.com/register" target="_blank">Create a free GLECF account</a>
+                            <span class="text-muted"> · </span>
+                            <a href="https://app.glecf.com/ecf/api-keys" target="_blank">Get your API key</a>
+                        </div>
+                        <div class="row mt8">
+                            <label for="glecf_api_key" string="API key" class="col-lg-3 o_light_label"/>
+                            <field name="glecf_api_key" password="True" placeholder="glecf_..."/>
+                        </div>
+                        <div class="row">
+                            <label for="l10n_do_ecf_service_env" string="DGII environment" class="col-lg-3 o_light_label"/>
+                            <field name="l10n_do_ecf_service_env"/>
+                        </div>
+                        <button name="action_glecf_check_connection" type="object"
+                                string="Check connection" class="btn-link ps-0"
+                                icon="oi-arrow-right"
+                                invisible="not glecf_api_key"/>
+                    </setting>
+                    <setting id="glecf_consent" string="Data sent to GLECF"
+                             help="When an e-CF is sent, its number, dates, amounts, lines and the data of your company and customer go to GLECF, which keeps them to deliver them to the DGII.">
+                        <field name="glecf_consent"/>
+                        <div class="mt8">
+                            <a href="https://glecf.com/legal#privacidad" target="_blank">Privacy policy</a>
+                            <span class="text-muted"> · </span>
+                            <a href="https://glecf.com/legal#terminos" target="_blank">Terms of service</a>
+                        </div>
+                    </setting>
+                    <setting id="glecf_auto_send" string="Send when posting"
+                             help="Each e-CF is sent a moment after it is posted. Otherwise, use Send to DGII on the invoice.">
+                        <field name="glecf_auto_send"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

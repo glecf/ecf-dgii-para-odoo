@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form_glecf" model="ir.ui.view">
+        <field name="name">account.move.form.glecf</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='button_draft']" position="before">
+                <button name="action_glecf_send" type="object" string="Send to DGII"
+                        class="btn-primary"
+                        invisible="glecf_state not in ('to_send', 'error')"
+                        groups="account.group_account_invoice"/>
+                <button name="action_glecf_refresh" type="object" string="Check DGII answer"
+                        invisible="glecf_state != 'sent'"
+                        groups="account.group_account_invoice"/>
+            </xpath>
+            <xpath expr="//div[@name='journal_div']" position="after">
+                <field name="glecf_state" widget="badge"
+                       invisible="not glecf_state"
+                       decoration-info="glecf_state in ('to_send', 'sent')"
+                       decoration-success="glecf_state == 'accepted'"
+                       decoration-warning="glecf_state == 'conditional'"
+                       decoration-danger="glecf_state in ('rejected', 'error')"/>
+                <field name="glecf_message" invisible="not glecf_message"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_out_invoice_tree_glecf" model="ir.ui.view">
+        <field name="name">account.move.tree.glecf</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_out_invoice_tree"/>
+        <field name="arch" type="xml">
+            <field name="state" position="before">
+                <field name="glecf_state" widget="badge" optional="show"
+                       decoration-info="glecf_state in ('to_send', 'sent')"
+                       decoration-success="glecf_state == 'accepted'"
+                       decoration-warning="glecf_state == 'conditional'"
+                       decoration-danger="glecf_state in ('rejected', 'error')"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_account_invoice_filter_glecf" model="ir.ui.view">
+        <field name="name">account.move.search.glecf</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='draft']" position="before">
+                <filter name="glecf_attention" string="e-CF to review"
+                        domain="[('glecf_state', 'in', ('error', 'rejected', 'conditional'))]"/>
+                <separator/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_glecf_send_selected" model="ir.actions.server">
+        <field name="name">Send e-CF to DGII</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_view_types">list</field>
+        <field name="groups_id" eval="[(4, ref('account.group_account_invoice'))]"/>
+        <field name="state">code</field>
+        <field name="code">records.action_glecf_send()</field>
+    </record>
+</odoo>
