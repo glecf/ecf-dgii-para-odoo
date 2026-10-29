@@ -284,10 +284,21 @@ class AccountMove(models.Model):
         self.write(values)
 
         if state == "rejected":
-            body = _("La DGII rechazó el e-CF: %s. Corrige la factura y vuelve a publicarla: "
-                     "se reenviará con el mismo e-NCF. Si la DGII responde que esa secuencia ya se "
-                     "usó, cancela esta factura y créala de nuevo para que tome otro número.") % (
-                values["glecf_message"] or "-")
+            reason = values["glecf_message"] or "-"
+            # The DGII says whether a rejected e-NCF is spent; usually it is.
+            used = document.get("secuencia_utilizada")
+            if used is True:
+                body = _("La DGII rechazó el e-CF: %s. Ese e-NCF ya quedó usado y no se puede volver "
+                         "a enviar: cancela esta factura y duplícala para emitirla con otro número.") % reason
+            elif used is False:
+                body = _("La DGII rechazó el e-CF: %s. El e-NCF se puede volver a usar: corrige la "
+                         "factura y vuelve a publicarla.") % reason
+            else:
+                body = _("La DGII rechazó el e-CF: %s. Corrige la factura y vuelve a publicarla: "
+                         "se reenviará con el mismo e-NCF. Si la DGII responde que esa secuencia ya se "
+                         "usó, cancela esta factura y créala de nuevo para que tome otro número.") % reason
+            values_message = body
+            self.write({"glecf_message": values_message})
         elif state == "conditional":
             body = _("La DGII aceptó el e-CF con observaciones: %s") % (values["glecf_message"] or "-")
         else:
