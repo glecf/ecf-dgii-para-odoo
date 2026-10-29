@@ -27,6 +27,10 @@ class ResConfigSettings(models.TransientModel):
     glecf_plan_summary = fields.Char(related="company_id.glecf_plan_summary")
     glecf_plan_low = fields.Boolean(related="company_id.glecf_plan_low")
     glecf_issuer_state = fields.Selection(related="company_id.glecf_issuer_state")
+    glecf_receive = fields.Boolean(related="company_id.glecf_receive", readonly=False)
+    glecf_received_journal_id = fields.Many2one(
+        related="company_id.glecf_received_journal_id", readonly=False,
+    )
 
     def action_glecf_connect(self):
         self.ensure_one()
@@ -39,6 +43,10 @@ class ResConfigSettings(models.TransientModel):
     def action_glecf_sequences(self):
         self.ensure_one()
         return self.company_id.action_glecf_sequences()
+
+    def action_glecf_fetch_received(self):
+        self.ensure_one()
+        return self.company_id.action_glecf_fetch_received()
 
     def action_glecf_check_connection(self):
         self.ensure_one()

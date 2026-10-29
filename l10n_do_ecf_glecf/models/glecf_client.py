@@ -86,6 +86,20 @@ class GlecfClient:
             json={"code": code, "code_verifier": verifier, "redirect_uri": redirect_uri},
         )
 
+    def received_feed(self, after=None, limit=50):
+        """The e-CF the company received, oldest first, from the cursor `after`."""
+        params = {"limit": limit}
+        if after:
+            params["after"] = after
+        return self._request("GET", "/documents/received/feed", params=params)
+
+    def received_approval(self, received_id, estado, motivo=None):
+        """Accept or reject a received e-CF (commercial approval)."""
+        payload = {"estado": estado}
+        if motivo:
+            payload["motivo_rechazo"] = motivo
+        return self._request("POST", "/documents/received/%s/approval" % received_id, json=payload)
+
     def check(self):
         """Raise GlecfError if the API key does not work."""
         return self._request("GET", "/documents", params={"limit": 1})

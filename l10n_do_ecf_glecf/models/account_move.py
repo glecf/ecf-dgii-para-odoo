@@ -367,6 +367,16 @@ class AccountMove(models.Model):
             ("glecf_api_key", "!=", False),
             "|", ("glecf_account_checked", "=", False), ("glecf_account_checked", "<", day_ago),
         ])
+        # The e-CF the companies received, as draft vendor bills.
+        receiving = self.env["res.company"].sudo().search([
+            ("glecf_api_key", "!=", False), ("glecf_receive", "=", True),
+        ])
+        for company in receiving:
+            try:
+                company._glecf_fetch_received()
+            except Exception:
+                self.env.cr.rollback()
+                _logger.exception("GLECF: received e-CF of %s not brought", company.name)
         for company in pending.company_id | stale:
             try:
                 company._glecf_refresh_account()

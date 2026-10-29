@@ -121,6 +121,18 @@
                         <button name="action_glecf_sequences" type="object"
                                 string="Configurar las secuencias e-NCF" class="btn-link ps-0" icon="oi-arrow-right"/>
                     </setting>
+                    <setting id="glecf_received" string="e-CF recibidos"
+                             help="Los e-CF que te mandan tus proveedores llegan a GLECF y entran aquí como facturas de proveedor en borrador, con el e-NCF del proveedor para el 606. Desde la factura puedes aceptarlos o rechazarlos."
+                             invisible="not glecf_api_key">
+                        <field name="glecf_receive"/>
+                        <div class="row mt8" invisible="not glecf_receive">
+                            <label for="glecf_received_journal_id" string="Diario" class="col-lg-3 o_light_label"/>
+                            <field name="glecf_received_journal_id" placeholder="El primero de compras"
+                                   options="{'no_create': True}"/>
+                        </div>
+                        <button name="action_glecf_fetch_received" type="object" string="Traer los recibidos ahora"
+                                class="btn-link ps-0" icon="oi-arrow-right" invisible="not glecf_receive"/>
+                    </setting>
                     <setting id="glecf_consent" string="Datos que se envían a GLECF"
                              help="Al enviar un e-CF, su número, fechas, importes, líneas y los datos de tu empresa y de tu cliente van a GLECF, que los guarda para entregarlos a la DGII.">
                         <field name="glecf_consent"/>

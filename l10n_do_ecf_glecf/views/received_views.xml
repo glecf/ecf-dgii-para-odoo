@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form_glecf_received" model="ir.ui.view">
+        <field name="name">account.move.form.glecf.received</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='button_draft']" position="before">
+                <field name="glecf_received_id" invisible="1"/>
+                <field name="glecf_approval_supplier" invisible="1"/>
+                <button name="action_glecf_accept" type="object" string="Aceptar e-CF"
+                        class="btn-primary"
+                        invisible="not glecf_received_id or state == 'cancel' or (glecf_approval_state and glecf_approval_supplier != 'fallido')"
+                        groups="account.group_account_invoice"
+                        confirm="Se enviará a la DGII y al proveedor que aceptas este e-CF. No se puede cambiar después."/>
+                <button name="action_glecf_reject" type="object" string="Rechazar e-CF"
+                        invisible="not glecf_received_id or state == 'cancel' or glecf_approval_state"
+                        groups="account.group_account_invoice"/>
+            </xpath>
+            <xpath expr="//div[@name='journal_div']" position="after">
+                <field name="glecf_approval_state" widget="badge" invisible="not glecf_approval_state"
+                       decoration-success="glecf_approval_state == 'aceptado'"
+                       decoration-danger="glecf_approval_state == 'rechazado'"/>
+                <field name="glecf_approval_message" invisible="not glecf_approval_message"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="glecf_reject_wizard_view_form" model="ir.ui.view">
+        <field name="name">glecf.reject.wizard.form</field>
+        <field name="model">glecf.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Rechazar el e-CF">
+                <p class="text-muted">
+                    El rechazo se envía a la DGII y al proveedor, que tendrá que anular su factura con
+                    una nota de crédito. No se puede cambiar después.
+                </p>
+                <group>
+                    <field name="move_id" invisible="1"/>
+                    <field name="reason" placeholder="Por ejemplo: la mercancía no se recibió"/>
+                </group>
+                <footer>
+                    <button name="action_reject" type="object" string="Rechazar" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

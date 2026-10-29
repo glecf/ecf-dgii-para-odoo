@@ -27,6 +27,7 @@ salen de Odoo después de que lo aceptes en Ajustes.
         "views/res_config_settings_views.xml",
         "views/account_move_views.xml",
         "views/report_invoice.xml",
+        "views/received_views.xml",
     ],
     "images": ["static/description/banner.png"],
     "installable": True,
