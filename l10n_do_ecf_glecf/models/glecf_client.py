@@ -1,8 +1,8 @@
 """Small client for the GLECF REST API.
 
-Only three calls are needed: check the API key, submit an e-CF and read it
-back. Everything else (signing, sending to the DGII, retries) happens on the
-GLECF side.
+A handful of calls: connect, check the API key, upload the certificate,
+submit an e-CF and read it back. Everything else (signing, sending to the
+DGII, retries) happens on the GLECF side.
 """
 
 import logging
@@ -31,10 +31,11 @@ class GlecfClient:
 
     def _request(self, method, path, **kwargs):
         headers = {
-            "X-API-Key": self.api_key,
             "Accept": "application/json",
             "User-Agent": "odoo-%s l10n_do_ecf_glecf" % release.version,
         }
+        if self.api_key:
+            headers["X-API-Key"] = self.api_key
         try:
             response = requests.request(
                 method,
@@ -63,6 +64,18 @@ class GlecfClient:
                 response.status_code,
             )
         return data
+
+    def exchange(self, code, verifier, redirect_uri):
+        """Trade the one-time code of «Connect to GLECF» for an API key.
+
+        Needs no API key: the code and the verifier, which never left this
+        Odoo, identify the caller.
+        """
+        return self._request(
+            "POST",
+            "/api-keys/exchange",
+            json={"code": code, "code_verifier": verifier, "redirect_uri": redirect_uri},
+        )
 
     def check(self):
         """Raise GlecfError if the API key does not work."""

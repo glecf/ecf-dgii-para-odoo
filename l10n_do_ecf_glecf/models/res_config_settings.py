@@ -24,6 +24,10 @@ class ResConfigSettings(models.TransientModel):
     glecf_certificate_name = fields.Char(related="company_id.glecf_certificate_name")
     glecf_certificate_valid_until = fields.Date(related="company_id.glecf_certificate_valid_until")
 
+    def action_glecf_connect(self):
+        self.ensure_one()
+        return self.company_id.action_glecf_connect()
+
     def action_glecf_create_account(self):
         self.ensure_one()
         return self.company_id.action_glecf_create_account()

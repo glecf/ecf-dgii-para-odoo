@@ -1,3 +1,8 @@
+import base64
+import hashlib
+import json
+import secrets
+import time
 from urllib.parse import urlencode
 
 from odoo import _, fields, models
@@ -6,6 +11,12 @@ from odoo.exceptions import UserError
 from .glecf_client import GlecfClient, GlecfError
 
 REGISTER_URL = "https://glecf.com/register"
+CONNECT_URL = "https://app.glecf.com/conectar/odoo"
+CONNECT_PATH = "/glecf/conectar"
+# A pending connection is kept this long: the person signs in to GLECF and
+# presses Authorize, which takes a minute or two.
+CONNECT_TIMEOUT = 30 * 60
+CONNECT_PARAM = "glecf.connect."
 
 # GLECF environment -> DGII environment, as the localization expects it in
 # `l10n_do_ecf_service_env` to build the QR code of the printed invoice.
@@ -71,12 +82,67 @@ class ResCompany(models.Model):
     def _glecf_refresh_account(self):
         """Read which GLECF company and environment the API key belongs to."""
         account = self._glecf_client().current_account()
+        self._glecf_store_account(account)
+        return account
+
+    def _glecf_store_account(self, account):
         self.sudo().write({
             "glecf_account_name": account.get("name") or False,
             "glecf_account_rnc": account.get("rnc") or False,
         })
         self._glecf_set_environment(account.get("environment"))
-        return account
+
+    # -- Connect with one click ------------------------------------------------
+
+    def action_glecf_connect(self):
+        """Send the person to GLECF to authorize this Odoo; they come back connected.
+
+        This Odoo keeps a secret (the verifier) and sends only its hash. GLECF
+        gives back a one-time code, which this Odoo trades for an API key
+        together with the verifier, server to server. So the API key never
+        travels through the browser, and a code seen by someone else is useless.
+        """
+        self.ensure_one()
+        params = self.env["ir.config_parameter"].sudo()
+        _forget_expired_connections(params)
+        state = secrets.token_urlsafe(24)
+        verifier = secrets.token_urlsafe(48)
+        redirect_uri = self.get_base_url().rstrip("/") + CONNECT_PATH
+        params.set_param(CONNECT_PARAM + state, json.dumps({
+            "company_id": self.id,
+            "uid": self.env.uid,
+            "verifier": verifier,
+            "redirect_uri": redirect_uri,
+            "expires": time.time() + CONNECT_TIMEOUT,
+        }))
+        query = {
+            "redirect_uri": redirect_uri,
+            "state": state,
+            "code_challenge": _challenge(verifier),
+            "empresa": self.name or "",
+            "rnc": self._glecf_odoo_rnc(),
+        }
+        connect_url = params.get_param("glecf.connect_url") or CONNECT_URL
+        return {
+            "type": "ir.actions.act_url",
+            "url": "%s?%s" % (connect_url, urlencode({k: v for k, v in query.items() if v})),
+            "target": "self",
+        }
+
+    def _glecf_finish_connection(self, code, pending):
+        """Trade the code for the API key and keep it. Raises GlecfError."""
+        self.ensure_one()
+        api_url = self.env["ir.config_parameter"].sudo().get_param("glecf.api_url")
+        answer = GlecfClient(None, api_url or None).exchange(
+            code, pending["verifier"], pending["redirect_uri"]
+        )
+        self.sudo().write({"glecf_api_key": answer["api_key"]})
+        self._glecf_store_account(answer)
+        try:
+            self._glecf_refresh_certificate()
+        except GlecfError:
+            # Connected anyway; the certificate shows up on «Check connection».
+            pass
 
     def _glecf_rnc_mismatch_message(self):
         """Why sending would fail, if the GLECF account is another company."""
@@ -194,6 +260,43 @@ class ResCompany(models.Model):
                 "next": {"type": "ir.actions.client", "tag": "soft_reload"},
             },
         }
+
+
+def _challenge(verifier):
+    """PKCE S256: base64url(sha256(verifier)) without padding."""
+    digest = hashlib.sha256(verifier.encode()).digest()
+    return base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
+
+
+def _forget_expired_connections(params):
+    """Drop connections nobody finished, so they do not pile up."""
+    now = time.time()
+    for record in params.search([("key", "=like", CONNECT_PARAM + "%")]):
+        try:
+            expired = json.loads(record.value).get("expires", 0) < now
+        except (TypeError, ValueError):
+            expired = True
+        if expired:
+            record.unlink()
+
+
+def take_pending_connection(env, state):
+    """The pending connection of `state`, removed so it is used only once."""
+    if not state or len(state) > 64:
+        return None
+    params = env["ir.config_parameter"].sudo()
+    record = params.search([("key", "=", CONNECT_PARAM + state)], limit=1)
+    if not record:
+        return None
+    value = record.value
+    record.unlink()
+    try:
+        pending = json.loads(value)
+    except (TypeError, ValueError):
+        return None
+    if pending.get("expires", 0) < time.time():
+        return None
+    return pending
 
 
 def _certificate_holder(subject):
