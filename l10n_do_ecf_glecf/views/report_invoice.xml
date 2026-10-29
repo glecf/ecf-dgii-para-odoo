@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- What the DGII asks of the printed e-CF (Informe Técnico e-CF, 18.2.3)
+         that the l10n_do_accounting template leaves short:
+         - a QR of at least 22 x 22 mm that a phone can read: the long DGII
+           link does not fit legibly in a 100 px image once printed;
+         - the signing date with its time, in Dominican time. -->
+    <template id="report_invoice_document_ecf"
+              inherit_id="l10n_do_accounting.report_invoice_document_inherited">
+        <xpath expr="//img[@alt='Barcode']" position="attributes">
+            <attribute name="t-att-src">'/report/barcode/?barcode_type=QR&amp;width=400&amp;height=400&amp;value=' + o.l10n_do_electronic_stamp</attribute>
+            <attribute name="style">width: 25mm; height: 25mm;</attribute>
+        </xpath>
+        <xpath expr="//t[@t-if='o.l10n_do_ecf_sign_date']/span" position="attributes">
+            <attribute name="t-out">o._glecf_sign_date_text()</attribute>
+        </xpath>
+    </template>
+</odoo>

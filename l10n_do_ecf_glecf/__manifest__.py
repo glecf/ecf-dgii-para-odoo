@@ -23,6 +23,7 @@ Your invoice data leaves Odoo only after you accept it in Settings.
         "views/glecf_certificate_wizard_views.xml",
         "views/res_config_settings_views.xml",
         "views/account_move_views.xml",
+        "views/report_invoice.xml",
     ],
     "images": ["static/description/banner.png"],
     "installable": True,

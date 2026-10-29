@@ -56,6 +56,14 @@ class AccountMove(models.Model):
         for move in self.filtered(lambda m: m.glecf_qr_url and m.state == "posted"):
             move.l10n_do_electronic_stamp = quote_plus(move.glecf_qr_url, safe="%")
 
+    def _glecf_sign_date_text(self):
+        """Signing time as the DGII wants it printed: Dominican time, dd-mm-yyyy HH:MM:SS."""
+        self.ensure_one()
+        if not self.l10n_do_ecf_sign_date:
+            return ""
+        signed = pytz.utc.localize(self.l10n_do_ecf_sign_date).astimezone(DR_TZ)
+        return signed.strftime("%d-%m-%Y %H:%M:%S")
+
     # -- Which invoices -------------------------------------------------------
 
     def _glecf_applies(self):
