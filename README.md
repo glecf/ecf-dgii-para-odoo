@@ -6,6 +6,9 @@ en Odoo como **comprobantes fiscales electrónicos (e-CF)**, tal como exige la
 **Ley núm. 32-23 de Facturación Electrónica** y su reglamento, el **Decreto
 587-24**.
 
+> **En mejora continua.** El módulo funciona y se sigue ampliando. El manual,
+> con capturas: [docs/manual.md](docs/manual.md).
+
 Funciona en **Odoo 17 Community y Enterprise**, sobre la localización
 dominicana `l10n_do_accounting`. La firma y el envío a la DGII los hace
 [GLECF](https://glecf.com). Tu certificado digital se sube desde Odoo, pero
@@ -44,7 +47,7 @@ Necesitas Odoo 17 y la localización dominicana:
 
 ```bash
 git clone -b 17.0 https://github.com/indexa-git/l10n-dominicana.git
-git clone -b 17.0 https://github.com/jorgeyhg/ecf-dgii-para-odoo.git
+git clone -b 17.0 https://github.com/glecf/ecf-dgii-para-odoo.git
 ```
 
 Añade las dos carpetas al `addons_path` de Odoo, actualiza la lista de
