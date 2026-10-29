@@ -32,6 +32,12 @@ Ajustes te dice:
 - si la DGII ya te tiene como emisor electrónico. Si todavía no, solo puedes
   trabajar en Pruebas y el botón **Empezar la certificación** te lleva a GLECF.
 
+Solo cuentan para el plan los comprobantes de Producción.
+
+**Pasar a Producción.** El ambiente va con la conexión. Cuando la DGII ya te
+tiene como emisor, debajo del ambiente sale **Cambiar a Producción**: vuelves a
+GLECF y eliges «Producción» al autorizar.
+
 ¿Aún no tienes cuenta? **Crear una cuenta gratis en GLECF** abre el registro
 con los datos de tu empresa ya puestos. Después contrata la Licencia Anual: el
 Plan Gratis no incluye Odoo.
@@ -81,7 +87,11 @@ e-CF se firma, se envía a la DGII y la respuesta vuelve a la factura.
 | Aceptado con observaciones | Válido; lee el mensaje |
 | Rechazado | Corrígela y publícala otra vez |
 | No enviado | Falta un dato: el mensaje dice cuál |
-| Requiere revisión | Escribe a soporte@glecf.com |
+| Requiere revisión | Lee el mensaje. Si sale **Reintentar envío**, no llegó a la DGII: arregla lo que dice y púlsalo. Si no, escribe a soporte@glecf.com |
+
+Si la DGII dice que el certificado **no está delegado**, el administrador de
+e-CF de la empresa tiene que darle el rol de Firmante a la persona del
+certificado, en la Oficina Virtual (Delegación de e-CF > Delegación de Roles).
 
 Los diez tipos: E31, E32, E33, E34, E44, E45 y E46 desde las facturas de
 cliente; E41, E43 y E47 desde las facturas de proveedor.
