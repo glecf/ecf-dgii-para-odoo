@@ -13,9 +13,10 @@ export const glecfRefreshService = {
                 return;
             }
             const viewType = controller.view && controller.view.type;
-            // An invoice created with «Nuevo» has no resId in its props: the
-            // address of the page has it.
-            const resId = props.resId || Number(router.current.hash.id);
+            // The address of the page says which invoice is on screen. The
+            // props do not: after «Nuevo» they keep the invoice opened before,
+            // or have none (2026-10-29).
+            const resId = Number(router.current.hash.id) || props.resId;
             const shown = viewType === "list" || (viewType === "form" && ids.includes(resId));
             if (shown) {
                 action.restore(controller.jsId);
