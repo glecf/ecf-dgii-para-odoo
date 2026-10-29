@@ -58,6 +58,11 @@ class AccountMove(models.Model):
     # Rejected, and the DGII did not say the e-NCF is spent: it can be
     # corrected and sent again with the same number.
     glecf_ncf_reusable = fields.Boolean(copy=False, readonly=True)
+    # When GLECF took it: while the DGII answer is fresh, the job checks more often.
+    glecf_sent_at = fields.Datetime(copy=False, readonly=True)
+    # A credit note of an invoice with ITBIS, with no tax on any line: Indexa
+    # creates them so with «Porcentaje» or «Importe» (2026-10-29).
+    glecf_refund_missing_tax = fields.Boolean(compute="_compute_glecf_refund_missing_tax")
     glecf_last_check = fields.Datetime(copy=False, readonly=True)
     glecf_document_id = fields.Char(string="Documento en GLECF", copy=False, readonly=True)
     glecf_message = fields.Text(string="Mensaje del e-CF", copy=False, readonly=True)
@@ -230,6 +235,7 @@ class AccountMove(models.Model):
 
         self.write({
             "glecf_document_id": answer.get("id"),
+            "glecf_sent_at": fields.Datetime.now(),
             "glecf_state": "sent",
             "glecf_attempted": False,
             "glecf_requested": False,
@@ -383,6 +389,42 @@ class AccountMove(models.Model):
         })
         self.message_post(body=message)
 
+    def _glecf_notify_change(self):
+        """Tell the screens showing this invoice that its e-CF status changed,
+        so they reload on their own (static/src/js/glecf_refresh.js)."""
+        users = self.create_uid | self.invoice_user_id | self.write_uid
+        for partner in users.filtered(lambda u: not u.share).partner_id:
+            self.env["bus.bus"]._sendone(partner, "glecf_move_updated", {"ids": self.ids})
+
+    @api.depends("move_type", "reversed_entry_id", "invoice_line_ids.tax_ids")
+    def _compute_glecf_refund_missing_tax(self):
+        for move in self:
+            origin = move.reversed_entry_id
+            lines = move.invoice_line_ids.filtered(lambda line: line.display_type == "product")
+            move.glecf_refund_missing_tax = bool(
+                move.move_type in ("out_refund", "in_refund")
+                and origin and origin.amount_tax
+                and lines and not lines.tax_ids
+            )
+
+    def action_glecf_add_origin_tax(self):
+        """Put the tax of the original invoice on the credit note lines with none."""
+        for move in self.filtered(lambda m: m.state == "draft" and m.glecf_refund_missing_tax):
+            origin_lines = move.reversed_entry_id.invoice_line_ids.filtered(
+                lambda line: line.display_type == "product"
+            )
+            tax_sets = {line.tax_ids for line in origin_lines}
+            if len(tax_sets) != 1:
+                raise UserError(_(
+                    "La factura original lleva impuestos distintos en sus líneas: pon a cada línea de "
+                    "la nota de crédito el que le corresponda."
+                ))
+            taxes = tax_sets.pop()
+            move.invoice_line_ids.filtered(
+                lambda line: line.display_type == "product" and not line.tax_ids
+            ).write({"tax_ids": [(6, 0, taxes.ids)]})
+        return True
+
     # -- Background job -------------------------------------------------------
 
     def _glecf_trigger_sync(self):
@@ -423,6 +465,8 @@ class AccountMove(models.Model):
                 if move.glecf_state != wanted:
                     continue
                 getattr(move.with_company(move.company_id), step)()
+                if move.glecf_state != wanted:
+                    move._glecf_notify_change()
                 self.env.cr.commit()
             except Exception:
                 self.env.cr.rollback()
@@ -453,6 +497,14 @@ class AccountMove(models.Model):
             except Exception:
                 self.env.cr.rollback()
                 _logger.info("GLECF: plan of %s not available", company.name)
+        # The DGII usually answers within a minute or two: while something sent
+        # in the last quarter of an hour still waits, look again in 30 seconds
+        # instead of the usual five minutes. Older ones wait for the usual run.
+        fresh = fields.Datetime.subtract(fields.Datetime.now(), minutes=15)
+        if moves.search_count([("glecf_state", "=", "sent"), ("glecf_sent_at", ">=", fresh)]):
+            self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync")._trigger(
+                at=fields.Datetime.now() + timedelta(seconds=30)
+            )
 
 
 def _parse_sign_date(text):

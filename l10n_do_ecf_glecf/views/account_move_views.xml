@@ -22,6 +22,16 @@
                         invisible="glecf_state != 'sent'"
                         groups="account.group_account_invoice"/>
             </xpath>
+            <xpath expr="//sheet/*[1]" position="before">
+                <field name="glecf_refund_missing_tax" invisible="1"/>
+                <div class="alert alert-warning d-flex align-items-center gap-3" role="alert"
+                     invisible="state != 'draft' or not glecf_refund_missing_tax">
+                    <span>La factura original lleva ITBIS y esta nota de crédito no. Si devuelves parte
+                        de lo facturado, el ITBIS también se devuelve.</span>
+                    <button name="action_glecf_add_origin_tax" type="object"
+                            string="Añadir el ITBIS de la factura original" class="btn btn-warning btn-sm"/>
+                </div>
+            </xpath>
             <xpath expr="//div[@name='journal_div']" position="after">
                 <field name="glecf_state" widget="badge"
                        invisible="not glecf_state"

@@ -29,6 +29,11 @@ salen de Odoo después de que lo aceptes en Ajustes.
         "views/report_invoice.xml",
         "views/received_views.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "l10n_do_ecf_glecf/static/src/js/glecf_refresh.js",
+        ],
+    },
     "images": ["static/description/banner.png"],
     "installable": True,
     "application": False,
