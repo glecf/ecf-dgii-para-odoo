@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="glecf_sequences_view_tree" model="ir.ui.view">
+        <field name="name">glecf.sequences.tree</field>
+        <field name="model">l10n_do.account.journal.document_type</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <tree string="e-NCF sequences" editable="top" create="false" delete="false"
+                  decoration-warning="glecf_expiry_unchecked"
+                  default_order="l10n_latam_document_type_id">
+                <field name="l10n_latam_document_type_id" readonly="1"/>
+                <field name="journal_id" readonly="1" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="glecf_last_number"/>
+                <field name="l10n_do_ncf_expiration_date" string="Valid until"/>
+                <field name="glecf_expiry_confirmed" widget="boolean_toggle"/>
+                <field name="glecf_expiry_unchecked" column_invisible="True"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

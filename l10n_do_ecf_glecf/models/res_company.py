@@ -71,6 +71,29 @@ class ResCompany(models.Model):
     glecf_account_name = fields.Char(string="GLECF account", readonly=True, copy=False)
     glecf_account_rnc = fields.Char(string="GLECF account RNC", readonly=True, copy=False)
 
+    glecf_sequences_to_check = fields.Integer(compute="_compute_glecf_sequences_to_check")
+
+    def _compute_glecf_sequences_to_check(self):
+        types = self.env["l10n_do.account.journal.document_type"].sudo()
+        for company in self:
+            company.glecf_sequences_to_check = len(
+                types.search(types._glecf_issued_domain(company)).filtered("glecf_expiry_unchecked")
+            )
+
+    def action_glecf_sequences(self):
+        """The e-NCF sequences of the e-CF types this company issues, in one list."""
+        self.ensure_one()
+        types = self.env["l10n_do.account.journal.document_type"]
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("e-NCF sequences"),
+            "res_model": types._name,
+            "view_mode": "tree",
+            "views": [(self.env.ref("l10n_do_ecf_glecf.glecf_sequences_view_tree").id, "tree")],
+            "domain": types._glecf_issued_domain(self),
+            "target": "current",
+        }
+
     def write(self, vals):
         if "glecf_api_key" in vals:
             # Another key may belong to another company: read it again.

@@ -21,6 +21,7 @@ Your invoice data leaves Odoo only after you accept it in Settings.
         "security/ir.model.access.csv",
         "data/ir_cron.xml",
         "views/glecf_certificate_wizard_views.xml",
+        "views/glecf_sequences_views.xml",
         "views/res_config_settings_views.xml",
         "views/account_move_views.xml",
         "views/report_invoice.xml",

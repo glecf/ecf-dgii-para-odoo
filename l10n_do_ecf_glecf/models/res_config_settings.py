@@ -23,6 +23,7 @@ class ResConfigSettings(models.TransientModel):
     glecf_account_rnc = fields.Char(related="company_id.glecf_account_rnc")
     glecf_certificate_name = fields.Char(related="company_id.glecf_certificate_name")
     glecf_certificate_valid_until = fields.Date(related="company_id.glecf_certificate_valid_until")
+    glecf_sequences_to_check = fields.Integer(related="company_id.glecf_sequences_to_check")
 
     def action_glecf_connect(self):
         self.ensure_one()
@@ -31,6 +32,10 @@ class ResConfigSettings(models.TransientModel):
     def action_glecf_create_account(self):
         self.ensure_one()
         return self.company_id.action_glecf_create_account()
+
+    def action_glecf_sequences(self):
+        self.ensure_one()
+        return self.company_id.action_glecf_sequences()
 
     def action_glecf_check_connection(self):
         self.ensure_one()
