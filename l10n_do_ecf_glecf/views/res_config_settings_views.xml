@@ -9,6 +9,8 @@
                 <block title="Facturación electrónica (e-CF)" id="glecf_settings">
                     <setting id="glecf_connection" string="Conexión con GLECF"
                              help="GLECF firma tus e-CF con tu certificado y los envía a la DGII.">
+                        <img src="/l10n_do_ecf_glecf/static/src/img/logo-glecf.svg" alt="GLECF"
+                             class="mt8 mb8" style="height: 28px;"/>
                         <div class="mt8" invisible="glecf_api_key">
                             <button name="action_glecf_connect" type="object"
                                     string="Conectar con GLECF" class="btn-primary"/>
@@ -25,6 +27,12 @@
                                 <span class="text-muted"> · RNC </span>
                                 <field name="glecf_account_rnc" class="oe_inline"/>
                             </div>
+                        </div>
+                        <div class="mt8" invisible="not glecf_plan_summary">
+                            <field name="glecf_plan_summary" class="oe_inline"
+                                   decoration-warning="glecf_plan_low"/>
+                            <a href="https://app.glecf.com/cuenta" target="_blank" class="ms-2"
+                               invisible="not glecf_plan_low">Mejorar el plan</a>
                         </div>
                         <div class="row">
                             <label for="l10n_do_ecf_service_env" string="Ambiente de la DGII" class="col-lg-3 o_light_label"/>

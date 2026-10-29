@@ -12,6 +12,7 @@ from odoo.http import request
 from .glecf_client import GlecfClient, GlecfError
 
 REGISTER_URL = "https://glecf.com/register"
+PLAN_URL = "https://app.glecf.com/cuenta"
 CONNECT_URL = "https://app.glecf.com/conectar/odoo"
 CONNECT_PATH = "/glecf/conectar"
 # A pending connection is kept this long: the person signs in to GLECF and
@@ -70,7 +71,31 @@ class ResCompany(models.Model):
     glecf_account_name = fields.Char(string="Cuenta de GLECF", readonly=True, copy=False)
     glecf_account_rnc = fields.Char(string="RNC de la cuenta de GLECF", readonly=True, copy=False)
 
+    # The GLECF plan and what is left this month, read with the account.
+    glecf_plan_label = fields.Char(string="Plan de GLECF", readonly=True, copy=False)
+    glecf_ecf_limit = fields.Integer(readonly=True, copy=False)
+    glecf_ecf_remaining = fields.Integer(readonly=True, copy=False)
+    glecf_plan_summary = fields.Char(compute="_compute_glecf_plan_summary")
+    glecf_plan_low = fields.Boolean(compute="_compute_glecf_plan_summary")
+
     glecf_sequences_to_check = fields.Integer(compute="_compute_glecf_sequences_to_check")
+
+    def _compute_glecf_plan_summary(self):
+        for company in self:
+            if not company.glecf_plan_label:
+                company.glecf_plan_summary = False
+                company.glecf_plan_low = False
+            elif company.glecf_ecf_limit < 0:
+                company.glecf_plan_summary = _("Plan %s · comprobantes ilimitados") % company.glecf_plan_label
+                company.glecf_plan_low = False
+            else:
+                company.glecf_plan_summary = _("Plan %(plan)s · te quedan %(left)s de %(limit)s comprobantes este mes") % {
+                    "plan": company.glecf_plan_label,
+                    "left": company.glecf_ecf_remaining,
+                    "limit": company.glecf_ecf_limit,
+                }
+                # Warn from the last tenth of the month's e-CF.
+                company.glecf_plan_low = company.glecf_ecf_remaining * 10 <= company.glecf_ecf_limit
 
     def _compute_glecf_sequences_to_check(self):
         types = self.env["l10n_do.account.journal.document_type"].sudo()
@@ -116,10 +141,17 @@ class ResCompany(models.Model):
         return account
 
     def _glecf_store_account(self, account):
-        self.sudo().write({
+        values = {
             "glecf_account_name": account.get("name") or False,
             "glecf_account_rnc": account.get("rnc") or False,
-        })
+        }
+        if account.get("plan_label"):
+            values.update({
+                "glecf_plan_label": account["plan_label"],
+                "glecf_ecf_limit": account.get("ecf_limit", -1),
+                "glecf_ecf_remaining": account.get("ecf_remaining", -1),
+            })
+        self.sudo().write(values)
         self._glecf_set_environment(account.get("environment"))
 
     # -- Connect with one click ------------------------------------------------

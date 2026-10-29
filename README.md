@@ -27,6 +27,7 @@ queda guardado en GLECF, no en Odoo.
 - Usa los datos de tu empresa en Odoo: nombre, RNC y dirección van al registro
   de GLECF y a cada e-CF.
 - Sube tu certificado digital a GLECF desde los Ajustes de Odoo.
+- Muestra en Ajustes tu plan de GLECF y cuántos comprobantes te quedan este mes.
 - Muestra el estado ante la DGII en cada factura y en el listado.
 - No deja volver a borrador una factura ya enviada a la DGII.
 

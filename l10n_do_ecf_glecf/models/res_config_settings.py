@@ -24,6 +24,8 @@ class ResConfigSettings(models.TransientModel):
     glecf_certificate_name = fields.Char(related="company_id.glecf_certificate_name")
     glecf_certificate_valid_until = fields.Date(related="company_id.glecf_certificate_valid_until")
     glecf_sequences_to_check = fields.Integer(related="company_id.glecf_sequences_to_check")
+    glecf_plan_summary = fields.Char(related="company_id.glecf_plan_summary")
+    glecf_plan_low = fields.Boolean(related="company_id.glecf_plan_low")
 
     def action_glecf_connect(self):
         self.ensure_one()

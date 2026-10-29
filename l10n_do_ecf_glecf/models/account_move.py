@@ -358,6 +358,15 @@ class AccountMove(models.Model):
             except Exception:
                 self.env.cr.rollback()
                 _logger.exception("GLECF: %s failed for %s", step, move.display_name)
+        # What is left of the plan changes with every e-CF sent: read it again
+        # for the companies that sent something.
+        for company in pending.company_id:
+            try:
+                company._glecf_refresh_account()
+                self.env.cr.commit()
+            except Exception:
+                self.env.cr.rollback()
+                _logger.info("GLECF: plan of %s not available", company.name)
 
 
 def _parse_sign_date(text):
