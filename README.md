@@ -6,8 +6,8 @@ Módulo de Odoo 17 que envía a la DGII, como comprobantes fiscales electrónico
 (e-CF), las facturas que publicas en Odoo. Funciona en **Odoo Community y
 Enterprise**, sobre la localización dominicana `l10n_do_accounting`.
 
-La firma y el envío los hace [GLECF](https://glecf.com): tu certificado digital
-queda en GLECF, no en Odoo.
+La firma y el envío los hace [GLECF](https://glecf.com). Tu certificado digital se
+sube desde Odoo, pero queda guardado en GLECF, no en Odoo.
 
 ## Qué hace
 
@@ -16,6 +16,7 @@ queda en GLECF, no en Odoo.
   vencimiento de la secuencia, lo dice en Odoo, no en un rechazo de la DGII.
 - Rellena el código de seguridad, la fecha de firma y el código QR de la factura
   impresa, y guarda el XML firmado.
+- Sube tu certificado digital a GLECF desde los Ajustes de Odoo.
 - Muestra el estado ante la DGII en cada factura y en el listado.
 - No deja volver a borrador una factura ya enviada a la DGII.
 
@@ -33,12 +34,15 @@ aplicaciones e instala **e-CF DGII para Odoo**.
 
 ## Puesta en marcha
 
-1. Crea tu cuenta gratis en [glecf.com](https://glecf.com/register) y carga ahí
-   tu certificado digital.
-2. Crea una clave de API en GLECF.
-3. En Odoo, ve a *Ajustes > Facturación > Electronic invoicing (e-CF)*, pega la
-   clave, pulsa *Check connection* y acepta el envío de tus facturas a GLECF.
-4. Publica tus facturas como siempre. Cada e-CF se firma y se envía a la DGII, y
+1. Crea tu cuenta gratis en [glecf.com](https://glecf.com/register) y crea ahí
+   una clave de API.
+2. En Odoo, ve a *Ajustes > Facturación > Facturación electrónica (e-CF)*, pega
+   la clave y pulsa *Comprobar conexión*.
+3. Pulsa *Subir certificado*, elige tu certificado digital (.p12) y escribe su
+   contraseña. Va directo a GLECF, que lo guarda cifrado; Odoo no guarda ni el
+   archivo ni la contraseña.
+4. Acepta el envío de tus facturas a GLECF.
+5. Publica tus facturas como siempre. Cada e-CF se firma y se envía a la DGII, y
    la respuesta vuelve a la factura.
 
 ## Tus datos

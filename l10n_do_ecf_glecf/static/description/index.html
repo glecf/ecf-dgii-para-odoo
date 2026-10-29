@@ -14,8 +14,9 @@
 
     <h2 style="font-size:22px;font-weight:600;color:#2563eb;margin:32px 0 12px">How it works</h2>
     <ol style="font-size:16px;line-height:1.7;padding-left:20px">
-        <li>Create a free account at glecf.com and load your digital certificate there.</li>
-        <li>Paste your GLECF API key in Settings &gt; Invoicing &gt; Electronic invoicing (e-CF).</li>
+        <li>Create a free account at glecf.com and get your API key.</li>
+        <li>Paste the key in Settings &gt; Invoicing &gt; Electronic invoicing (e-CF).</li>
+        <li>Upload your digital certificate (.p12) from the same screen. It goes straight to GLECF, encrypted; Odoo keeps neither the file nor its password.</li>
         <li>Accept sending your invoices to GLECF.</li>
         <li>Post your invoices as usual. Each e-CF is signed and sent to the DGII, and the answer comes back to the invoice.</li>
     </ol>
@@ -25,6 +26,7 @@
         <li>Sends e-CF types 31, 32, 33, 34, 44 and 45 in Dominican pesos.</li>
         <li>Checks the invoice before sending, so a missing RNC or expiry date is fixed in Odoo, not after a DGII rejection.</li>
         <li>Fills the security code, signature date and QR code of the printed invoice, and keeps the signed XML.</li>
+        <li>Uploads your digital certificate to GLECF from the Odoo settings.</li>
         <li>Shows the DGII status on each invoice and in the invoice list.</li>
         <li>Prevents resetting to draft an invoice already sent to the DGII.</li>
         <li>Works on Odoo Community and Enterprise, on top of the Dominican localization (l10n_do_accounting).</li>
