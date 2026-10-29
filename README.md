@@ -37,12 +37,16 @@ aplicaciones e instala **e-CF DGII para Odoo**.
 ## Puesta en marcha
 
 1. En Odoo, ve a *Ajustes > Facturación > Facturación electrónica (e-CF)* y
-   pulsa *Crear una cuenta gratis en GLECF*. El registro se abre con el nombre,
-   el RNC, la dirección, el teléfono y el correo de tu empresa tal como están en
-   Odoo. Crea ahí una clave de API.
-2. Pega la clave en Odoo y pulsa *Comprobar conexión*. El módulo comprueba que
-   la cuenta de GLECF sea la del mismo RNC que tu empresa en Odoo: si no, no
-   envía nada, porque la DGII lo rechazaría.
+   pulsa *Conectar con GLECF*. Se abre GLECF: inicia sesión y pulsa
+   *Autorizar*. Vuelves a Odoo ya conectado, sin copiar ninguna clave.
+
+   ¿Aún no tienes cuenta? Pulsa *Crear una cuenta gratis en GLECF*. El registro
+   se abre con el nombre, el RNC, la dirección, el teléfono y el correo de tu
+   empresa tal como están en Odoo. Confirma tu correo y vuelve a pulsar
+   *Conectar con GLECF*.
+2. El módulo comprueba que la cuenta de GLECF sea la del mismo RNC que tu
+   empresa en Odoo: si no, no envía nada, porque la DGII lo rechazaría. Si
+   prefieres, también puedes pegar a mano una clave de API creada en GLECF.
 3. Pulsa *Subir certificado*, elige tu certificado digital (.p12) y escribe su
    contraseña. Va directo a GLECF, que lo guarda cifrado; Odoo no guarda ni el
    archivo ni la contraseña.
