@@ -320,6 +320,12 @@ class AccountMove(models.Model):
             move._glecf_send_approval("aceptado")
         return True
 
+    def action_glecf_resend_approval(self):
+        """Send the same decision again, only to the supplier (it did not get it)."""
+        for move in self.filtered(lambda m: m.glecf_approval_supplier == "fallido"):
+            move._glecf_send_approval(move.glecf_approval_state)
+        return True
+
     def action_glecf_reject(self):
         self.ensure_one()
         return {
@@ -350,7 +356,7 @@ class AccountMove(models.Model):
         if emisor.get("estado") == "entregado":
             message = _("Enviada a la DGII y al proveedor.")
         elif emisor.get("estado") == "fallido":
-            message = _("No le llegó al proveedor: %s. Pulsa otra vez para reenviársela.") % (
+            message = _("Enviada a la DGII; al proveedor no le llegó: %s. Usa «Reenviar al proveedor».") % (
                 emisor.get("motivo") or "-")
         else:
             message = _("Enviada a la DGII.")

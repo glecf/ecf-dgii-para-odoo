@@ -10,9 +10,12 @@
                 <field name="glecf_approval_supplier" invisible="1"/>
                 <button name="action_glecf_accept" type="object" string="Aceptar e-CF"
                         class="btn-primary"
-                        invisible="not glecf_received_id or state == 'cancel' or (glecf_approval_state and glecf_approval_supplier != 'fallido')"
+                        invisible="not glecf_received_id or state == 'cancel' or glecf_approval_state"
                         groups="account.group_account_invoice"
                         confirm="Se enviará a la DGII y al proveedor que aceptas este e-CF. No se puede cambiar después."/>
+                <button name="action_glecf_resend_approval" type="object" string="Reenviar al proveedor"
+                        invisible="glecf_approval_supplier != 'fallido'"
+                        groups="account.group_account_invoice"/>
                 <button name="action_glecf_reject" type="object" string="Rechazar e-CF"
                         invisible="not glecf_received_id or state == 'cancel' or glecf_approval_state"
                         groups="account.group_account_invoice"/>

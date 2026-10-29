@@ -22,6 +22,10 @@ queda guardado en GLECF, no en Odoo.
   vencimiento de la secuencia, lo dice en Odoo, no en un rechazo de la DGII.
 - Reúne en una sola lista las **secuencias e-NCF** de todos los tipos, con su
   último número y su vencimiento, y avisa de las fechas que nadie ha revisado.
+- Trae los **e-CF que te mandan tus proveedores** como facturas de proveedor en
+  borrador (y sus notas de crédito y débito, enlazadas a la factura), con el
+  e-NCF del proveedor listo para el 606 y el XML adjunto. Desde la factura los
+  aceptas o los rechazas: la respuesta va a la DGII y al proveedor.
 - Imprime la factura con lo que pide la DGII: código QR de consulta, código de
   seguridad y fecha y hora de la firma digital. Guarda el XML firmado.
 - Usa los datos de tu empresa en Odoo: nombre, RNC y dirección van al registro
