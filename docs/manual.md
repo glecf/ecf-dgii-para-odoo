@@ -85,8 +85,8 @@ Antes de la primera factura, marca **Datos que se envían a GLECF** en Ajustes.
 
 ![Factura nueva, en borrador](img/10-factura-nueva.png)
 
-En unos segundos sale a la DGII y la respuesta vuelve a la factura. Para ver el
-estado nuevo, recarga la página.
+En unos segundos sale a la DGII y la respuesta vuelve a la factura. El estado
+cambia solo en la pantalla, sin recargar.
 
 ![Factura aceptada por la DGII](img/11-factura-aceptada.png)
 
@@ -106,8 +106,8 @@ certificado, en la Oficina Virtual (Delegación de e-CF > Delegación de Roles).
 
 **Notas de crédito.** Desde la factura, pulsa **Nota de crédito**, escribe el
 motivo y elige el **Código Modificación e-CF**. Si eliges *Porcentaje* o
-*Importe*, Odoo crea una línea **sin ITBIS**: añádele el impuesto antes de
-confirmar, o el ITBIS de la factura no se devuelve.
+*Importe*, Odoo crea una línea **sin ITBIS**: un aviso lo dice, y el botón
+**Añadir el ITBIS de la factura original** lo pone antes de confirmar.
 
 **En el ambiente de Pruebas** la DGII da a todas las secuencias el vencimiento
 31-12-2028; el módulo lo pone solo.
