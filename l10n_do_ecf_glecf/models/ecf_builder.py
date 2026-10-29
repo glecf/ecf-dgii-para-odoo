@@ -217,14 +217,10 @@ def _buyer(move, tipo):
         foreign_id = "".join(char for char in (partner.vat or "") if char.isalnum())[:20]
     if _buyer_id_required(move, tipo) and len(buyer_id) not in (9, 11) and not foreign_id:
         who = _("el proveedor") if tipo in PURCHASE_TYPES else _("el cliente")
+        message = _("%(doc)s: %(who)s %(name)s necesita un RNC (9 dígitos) o una cédula (11 dígitos) válidos.")
         if tipo in ("32", "33", "34"):
-            reason = _("Desde RD$250,000 la DGII pide identificar al cliente. ")
-        else:
-            reason = ""
-        raise UserError(
-            _("%(doc)s: %(reason)s%(who)s %(name)s necesita un RNC (9 dígitos) o una cédula (11 dígitos) válidos.")
-            % {"doc": move.name, "reason": reason, "who": who, "name": partner.name}
-        )
+            message += " " + _("Desde RD$250,000 la DGII pide identificar al cliente.")
+        raise UserError(message % {"doc": move.name, "who": who, "name": partner.name})
     if tipo == "47":
         raise UserError(
             _("%(doc)s: un pago al exterior (E47) es a un proveedor de fuera del país, y %(name)s es de "
