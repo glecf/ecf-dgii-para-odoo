@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0-20260908\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 00:29+0000\n"
-"PO-Revision-Date: 2026-10-29 00:29+0000\n"
+"POT-Creation-Date: 2026-10-29 00:48+0000\n"
+"PO-Revision-Date: 2026-10-29 00:48+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -149,6 +149,11 @@ msgstr "%s: esta versión solo envía facturas en pesos dominicanos (DOP)."
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
 msgid "<span class=\"text-muted\"> · </span>"
 msgstr ""
+
+#. module: l10n_do_ecf_glecf
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
+msgid "<span class=\"text-muted\"> · RNC </span>"
+msgstr "<span class=\"text-muted\"> · RNC </span>"
 
 #. module: l10n_do_ecf_glecf
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
@@ -322,6 +327,19 @@ msgstr "Facturación electrónica (e-CF)"
 #: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_res_config_settings__glecf_api_key
 msgid "GLECF API key"
 msgstr "Clave de API de GLECF"
+
+#. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_res_company__glecf_account_name
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_res_config_settings__glecf_account_name
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
+msgid "GLECF account"
+msgstr "Cuenta de GLECF"
+
+#. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_res_company__glecf_account_rnc
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_res_config_settings__glecf_account_rnc
+msgid "GLECF account RNC"
+msgstr "RNC de la cuenta de GLECF"
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -531,6 +549,16 @@ msgid "The DGII rejected the e-CF: %s"
 msgstr "La DGII rechazó el e-CF: %s"
 
 #. module: l10n_do_ecf_glecf
+#. odoo-python
+#: code:addons/l10n_do_ecf_glecf/models/res_company.py:0
+#, python-format
+msgid ""
+"The GLECF account of this API key is %(account)s, RNC %(glecf)s, but the RNC"
+" of %(company)s in Odoo is %(odoo)s. The DGII would reject every invoice: "
+"use the API key of this company's GLECF account, or correct the RNC in Odoo."
+msgstr "La cuenta de GLECF de esta clave de API es %(account)s, RNC %(glecf)s, pero el RNC de %(company)s en Odoo es %(odoo)s. La DGII rechazaría todas las facturas: usa la clave de API de la cuenta de GLECF de esta empresa o corrige el RNC en Odoo."
+
+#. module: l10n_do_ecf_glecf
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.glecf_certificate_wizard_form
 msgid ""
 "The certificate goes straight to GLECF, which keeps it encrypted and signs your e-CF with it.\n"
@@ -550,6 +578,13 @@ msgstr "El certificado debe ser un archivo .p12 o .pfx."
 #, python-format
 msgid "The e-CF was not sent: %s"
 msgstr "El e-CF no se envió: %s"
+
+#. module: l10n_do_ecf_glecf
+#. odoo-python
+#: code:addons/l10n_do_ecf_glecf/models/res_company.py:0
+#, python-format
+msgid "This API key is from another company"
+msgstr "Esta clave de API es de otra empresa"
 
 #. module: l10n_do_ecf_glecf
 #: model:ir.model.fields.selection,name:l10n_do_ecf_glecf.selection__account_move__glecf_state__to_send
