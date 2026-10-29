@@ -78,9 +78,9 @@
                              help="GLECF firma tus e-CF con él. El archivo y su contraseña los guarda GLECF, no Odoo."
                              invisible="not glecf_api_key">
                         <div class="mt8" invisible="not glecf_certificate_name">
-                            <field name="glecf_certificate_name" class="fw-bold"/>
+                            <field name="glecf_certificate_name" class="oe_inline fw-bold"/>
                             <span class="text-muted"> · válido hasta </span>
-                            <field name="glecf_certificate_valid_until"/>
+                            <field name="glecf_certificate_valid_until" class="oe_inline"/>
                         </div>
                         <div class="mt8 text-muted" invisible="glecf_certificate_name">
                             Todavía no hay certificado.
@@ -115,8 +115,9 @@
                     <setting id="glecf_sequences" string="Secuencias e-NCF"
                              help="Cada tipo de e-CF usa la secuencia que autorizó la DGII. Aquí va su fecha de vencimiento; el primer número se escribe en la primera factura de cada tipo y Odoo sigue desde ahí.">
                         <div class="mt8 text-warning" invisible="not glecf_sequences_to_check">
-                            <field name="glecf_sequences_to_check" class="oe_inline"/>
-                            secuencias tienen todavía la fecha de vencimiento que puso Odoo. Compruébala con tu autorización de la DGII.
+                            Secuencias con la fecha de vencimiento que puso Odoo:
+                            <field name="glecf_sequences_to_check" class="oe_inline"/>.
+                            Compruébalas con tu autorización de la DGII.
                         </div>
                         <button name="action_glecf_sequences" type="object"
                                 string="Configurar las secuencias e-NCF" class="btn-link ps-0" icon="oi-arrow-right"/>
