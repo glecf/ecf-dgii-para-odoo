@@ -1,7 +1,7 @@
 import base64
 import logging
 from datetime import datetime
-from urllib.parse import quote_plus
+from urllib.parse import quote
 
 import pytz
 
@@ -53,8 +53,10 @@ class AccountMove(models.Model):
         super()._compute_l10n_do_electronic_stamp()
         # l10n_do_accounting writes the signing time as stored by Odoo, in UTC,
         # four hours off the time in the XML: the DGII check would not match.
+        # Fully escaped: the report decodes it once, and the QR must hold the
+        # link exactly as GLECF wrote it (a bare space would cut it short).
         for move in self.filtered(lambda m: m.glecf_qr_url and m.state == "posted"):
-            move.l10n_do_electronic_stamp = quote_plus(move.glecf_qr_url, safe="%")
+            move.l10n_do_electronic_stamp = quote(move.glecf_qr_url, safe="")
 
     def _glecf_sign_date_text(self):
         """Signing time as the DGII wants it printed: Dominican time, dd-mm-yyyy HH:MM:SS."""

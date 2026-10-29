@@ -2,14 +2,19 @@
 <odoo>
     <!-- What the DGII asks of the printed e-CF (Informe Técnico e-CF, 18.2.3)
          that the l10n_do_accounting template leaves short:
-         - a QR of at least 22 x 22 mm that a phone can read: the long DGII
-           link does not fit legibly in a 100 px image once printed;
+         - a QR of at least 22 x 22 mm, starting 2 cm or more from the edge of
+           the sheet, that a phone can read: the long DGII link does not fit
+           legibly in a 100 px image once printed. The PDF renders about 15%
+           smaller than the CSS asks, hence 29 mm and 13 mm;
          - the signing date with its time, in Dominican time. -->
     <template id="report_invoice_document_ecf"
               inherit_id="l10n_do_accounting.report_invoice_document_inherited">
         <xpath expr="//img[contains(@t-att-src, 'barcode_type=QR')]" position="attributes">
             <attribute name="t-att-src">'/report/barcode/?barcode_type=QR&amp;width=400&amp;height=400&amp;value=' + o.l10n_do_electronic_stamp</attribute>
-            <attribute name="style">width: 25mm; height: 25mm;</attribute>
+            <attribute name="style">width: 29mm; height: 29mm;</attribute>
+        </xpath>
+        <xpath expr="//img[contains(@t-att-src, 'barcode_type=QR')]/../.." position="attributes">
+            <attribute name="style" add="padding-left: 13mm" separator=";"/>
         </xpath>
         <xpath expr="//t[@t-if='o.l10n_do_ecf_sign_date']/span" position="attributes">
             <attribute name="t-out">o._glecf_sign_date_text()</attribute>
