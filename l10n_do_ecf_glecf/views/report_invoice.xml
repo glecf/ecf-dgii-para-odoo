@@ -16,7 +16,7 @@
             <attribute name="style">width: 29mm; height: 29mm;</attribute>
         </xpath>
         <xpath expr="//img[contains(@t-att-src, 'barcode_type=QR')]/../.." position="attributes">
-            <attribute name="style" add="padding-left: 13mm; font-size: 8pt; line-height: 1.3" separator=";"/>
+            <attribute name="style" add="padding-left: 13mm; font-size: 9pt; line-height: 1.3" separator=";"/>
         </xpath>
         <xpath expr="//t[@t-if='o.l10n_do_ecf_sign_date']/span" position="attributes">
             <attribute name="t-out">o._glecf_sign_date_text()</attribute>
