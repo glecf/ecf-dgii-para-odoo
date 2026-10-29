@@ -102,6 +102,10 @@ class AccountMove(models.Model):
 
     def _glecf_send(self):
         self.ensure_one()
+        mismatch = self.company_id._glecf_rnc_mismatch_message()
+        if mismatch:
+            self._glecf_fail(mismatch)
+            return
         try:
             ecf_data = build_ecf_data(self)
         except UserError as error:

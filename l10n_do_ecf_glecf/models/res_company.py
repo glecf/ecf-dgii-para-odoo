@@ -1,7 +1,11 @@
+from urllib.parse import urlencode
+
 from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 from .glecf_client import GlecfClient, GlecfError
+
+REGISTER_URL = "https://glecf.com/register"
 
 # GLECF environment -> DGII environment, as the localization expects it in
 # `l10n_do_ecf_service_env` to build the QR code of the printed invoice.
@@ -51,6 +55,62 @@ class ResCompany(models.Model):
     glecf_certificate_name = fields.Char(string="Certificate holder", readonly=True, copy=False)
     glecf_certificate_valid_until = fields.Date(string="Certificate valid until", readonly=True, copy=False)
 
+    # The GLECF company the API key belongs to, read when connecting.
+    glecf_account_name = fields.Char(string="GLECF account", readonly=True, copy=False)
+    glecf_account_rnc = fields.Char(string="GLECF account RNC", readonly=True, copy=False)
+
+    def write(self, vals):
+        if "glecf_api_key" in vals:
+            # Another key may belong to another company: read it again.
+            vals = dict(vals, glecf_account_name=False, glecf_account_rnc=False)
+        return super().write(vals)
+
+    def _glecf_odoo_rnc(self):
+        return "".join(char for char in (self.vat or "") if char.isdigit())
+
+    def _glecf_refresh_account(self):
+        """Read which GLECF company and environment the API key belongs to."""
+        account = self._glecf_client().current_account()
+        self.sudo().write({
+            "glecf_account_name": account.get("name") or False,
+            "glecf_account_rnc": account.get("rnc") or False,
+        })
+        self._glecf_set_environment(account.get("environment"))
+        return account
+
+    def _glecf_rnc_mismatch_message(self):
+        """Why sending would fail, if the GLECF account is another company."""
+        if self.glecf_account_rnc and self.glecf_account_rnc != self._glecf_odoo_rnc():
+            return _(
+                "The GLECF account of this API key is %(account)s, RNC %(glecf)s, but the RNC of "
+                "%(company)s in Odoo is %(odoo)s. The DGII would reject every invoice: use the API "
+                "key of this company's GLECF account, or correct the RNC in Odoo."
+            ) % {
+                "account": self.glecf_account_name or "-",
+                "glecf": self.glecf_account_rnc,
+                "company": self.name,
+                "odoo": self._glecf_odoo_rnc() or "-",
+            }
+        return False
+
+    def action_glecf_create_account(self):
+        """Open the GLECF sign-up with this company's data already filled in."""
+        self.ensure_one()
+        address = ", ".join(filter(None, [self.street, self.street2, self.city]))
+        params = {
+            "origen": "odoo",
+            "empresa": self.name or "",
+            "rnc": self._glecf_odoo_rnc(),
+            "direccion": address,
+            "telefono": self.phone or "",
+            "correo": self.email or "",
+        }
+        return {
+            "type": "ir.actions.act_url",
+            "url": "%s?%s" % (REGISTER_URL, urlencode({k: v for k, v in params.items() if v})),
+            "target": "new",
+        }
+
     def _glecf_store_certificate(self, certificate):
         """Remember who the certificate in use belongs to and its expiry."""
         self.ensure_one()
@@ -81,6 +141,15 @@ class ResCompany(models.Model):
             raise UserError(
                 _("%s has not accepted sending its invoices to GLECF yet (Settings > Invoicing).") % self.name
             )
+        if not self.glecf_account_rnc:
+            try:
+                self._glecf_refresh_account()
+            except GlecfError:
+                # Without an answer, the submission itself will say what is wrong.
+                pass
+        mismatch = self._glecf_rnc_mismatch_message()
+        if mismatch:
+            raise UserError(mismatch)
 
     def _glecf_set_environment(self, glecf_environment):
         dgii_environment = DGII_ENVIRONMENTS.get((glecf_environment or "").lower())
@@ -90,10 +159,23 @@ class ResCompany(models.Model):
     def action_glecf_check_connection(self):
         self.ensure_one()
         try:
-            self._glecf_client().check()
+            self._glecf_refresh_account()
             self._glecf_refresh_certificate()
         except GlecfError as error:
             raise UserError(error.message) from error
+        mismatch = self._glecf_rnc_mismatch_message()
+        if mismatch:
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "type": "danger",
+                    "title": _("This API key is from another company"),
+                    "message": mismatch,
+                    "sticky": True,
+                    "next": {"type": "ir.actions.client", "tag": "soft_reload"},
+                },
+            }
         if self.glecf_certificate_name:
             message = _("The API key works. Certificate of %(name)s, valid until %(date)s.") % {
                 "name": self.glecf_certificate_name,

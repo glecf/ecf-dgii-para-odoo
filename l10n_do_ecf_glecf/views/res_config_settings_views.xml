@@ -10,13 +10,22 @@
                     <setting id="glecf_connection" string="GLECF connection"
                              help="GLECF signs your e-CF with your certificate and sends them to the DGII.">
                         <div class="mt8">
-                            <a href="https://glecf.com/register" target="_blank">Create a free GLECF account</a>
+                            <button name="action_glecf_create_account" type="object"
+                                    string="Create a free GLECF account" class="btn-link p-0 align-baseline"/>
                             <span class="text-muted"> · </span>
                             <a href="https://app.glecf.com/ecf/api-keys" target="_blank">Get your API key</a>
                         </div>
                         <div class="row mt8">
                             <label for="glecf_api_key" string="API key" class="col-lg-3 o_light_label"/>
                             <field name="glecf_api_key" password="True" placeholder="glecf_..."/>
+                        </div>
+                        <div class="row" invisible="not glecf_account_name">
+                            <label for="glecf_account_name" string="GLECF account" class="col-lg-3 o_light_label"/>
+                            <div class="col">
+                                <field name="glecf_account_name" class="oe_inline"/>
+                                <span class="text-muted"> · RNC </span>
+                                <field name="glecf_account_rnc" class="oe_inline"/>
+                            </div>
                         </div>
                         <div class="row">
                             <label for="l10n_do_ecf_service_env" string="DGII environment" class="col-lg-3 o_light_label"/>

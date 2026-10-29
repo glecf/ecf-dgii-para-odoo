@@ -68,6 +68,10 @@ class GlecfClient:
         """Raise GlecfError if the API key does not work."""
         return self._request("GET", "/documents", params={"limit": 1})
 
+    def current_account(self):
+        """RNC, name and environment of the GLECF company the key belongs to."""
+        return self._request("GET", "/api-keys/current")
+
     def submit(self, payload):
         return self._request("POST", "/documents/submit", json=payload)
 
