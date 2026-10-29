@@ -1,4 +1,6 @@
-# Facturación electrónica e-CF para Odoo (República Dominicana)
+# e-CF DGII para Odoo
+
+Facturación electrónica e-CF para Odoo en República Dominicana.
 
 Módulo de Odoo 17 que envía a la DGII, como comprobantes fiscales electrónicos
 (e-CF), las facturas que publicas en Odoo. Funciona en **Odoo Community y
@@ -23,11 +25,11 @@ Necesitas Odoo 17 y la localización dominicana:
 
 ```bash
 git clone -b 17.0 https://github.com/indexa-git/l10n-dominicana.git
-git clone -b 17.0 https://github.com/jorgeyhg/odoo-facturacion-electronica.git
+git clone -b 17.0 https://github.com/jorgeyhg/ecf-dgii-para-odoo.git
 ```
 
 Añade las dos carpetas al `addons_path` de Odoo, actualiza la lista de
-aplicaciones e instala **Dominican e-CF Invoicing**.
+aplicaciones e instala **e-CF DGII para Odoo**.
 
 ## Puesta en marcha
 

@@ -1,5 +1,5 @@
 {
-    "name": "Dominican e-CF Invoicing",
+    "name": "e-CF DGII para Odoo",
     "summary": "Send your invoices to the DGII as electronic fiscal "
     "receipts (e-CF). Requires a GLECF account.",
     "description": """
