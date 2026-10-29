@@ -55,6 +55,9 @@ class AccountMove(models.Model):
     # It never reached the DGII (not signed, or the DGII refused the
     # certificate when GLECF identified itself): «Reintentar envío» is safe.
     glecf_retryable = fields.Boolean(copy=False, readonly=True)
+    # Rejected, and the DGII did not say the e-NCF is spent: it can be
+    # corrected and sent again with the same number.
+    glecf_ncf_reusable = fields.Boolean(copy=False, readonly=True)
     glecf_last_check = fields.Datetime(copy=False, readonly=True)
     glecf_document_id = fields.Char(string="Documento en GLECF", copy=False, readonly=True)
     glecf_message = fields.Text(string="Mensaje del e-CF", copy=False, readonly=True)
@@ -166,6 +169,16 @@ class AccountMove(models.Model):
             })
         self._glecf_trigger_sync()
         return True
+
+    def action_glecf_correct(self):
+        """«Corregir la factura»: back to draft a rejected e-CF whose number
+        can be used again. The Dominican localization only lets cancelled
+        invoices go back to draft, and cancelling would void the number."""
+        moves = self.filtered(
+            lambda m: m.state == "posted" and m.glecf_state == "rejected" and m.glecf_ncf_reusable
+        )
+        moves.write({"glecf_ncf_reusable": False})
+        return moves.button_draft()
 
     def action_glecf_refresh(self):
         for move in self.filtered(lambda m: m.glecf_state == "sent"):
@@ -297,20 +310,23 @@ class AccountMove(models.Model):
 
         if state == "rejected":
             reason = values["glecf_message"] or "-"
+            if str(document.get("dgii_response_code") or "") == "145":
+                reason += _(". La fecha de vencimiento de la secuencia no es la que autorizó la DGII: "
+                            "corrígela en Ajustes > Facturación > Configurar las secuencias e-NCF")
             # The DGII says whether a rejected e-NCF is spent; usually it is.
             used = document.get("secuencia_utilizada")
             if used is True:
                 body = _("La DGII rechazó el e-CF: %s. Ese e-NCF ya quedó usado y no se puede volver "
                          "a enviar: cancela esta factura y duplícala para emitirla con otro número.") % reason
             elif used is False:
-                body = _("La DGII rechazó el e-CF: %s. El e-NCF se puede volver a usar: corrige la "
-                         "factura y vuelve a publicarla.") % reason
+                body = _("La DGII rechazó el e-CF: %s. El e-NCF se puede volver a usar: pulsa «Corregir "
+                         "la factura», corrige lo que haga falta y confírmala otra vez.") % reason
             else:
-                body = _("La DGII rechazó el e-CF: %s. Corrige la factura y vuelve a publicarla: "
-                         "se reenviará con el mismo e-NCF. Si la DGII responde que esa secuencia ya se "
-                         "usó, cancela esta factura y créala de nuevo para que tome otro número.") % reason
-            values_message = body
-            self.write({"glecf_message": values_message})
+                body = _("La DGII rechazó el e-CF: %s. Pulsa «Corregir la factura», corrige lo que haga "
+                         "falta y confírmala otra vez: se reenviará con el mismo e-NCF. Si la DGII responde "
+                         "que esa secuencia ya se usó, cancela esta factura y créala de nuevo para que tome "
+                         "otro número.") % reason
+            self.write({"glecf_message": body, "glecf_ncf_reusable": used is not True})
         elif state == "conditional":
             body = _("La DGII aceptó el e-CF con observaciones: %s") % (values["glecf_message"] or "-")
         else:

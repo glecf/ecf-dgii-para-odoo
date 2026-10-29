@@ -6,7 +6,7 @@ to get the data right. Every rule that would make the DGII reject a document is
 checked here first, so the person posting the invoice learns it in Odoo.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 
 import re
 
@@ -24,6 +24,12 @@ SUPPORTED_TYPES = ("31", "32", "33", "34", "41", "43", "44", "45", "46", "47")
 # suppliers, minor expenses and payments abroad. In them the "Comprador" of
 # the e-CF is the supplier.
 PURCHASE_TYPES = ("41", "43", "47")
+# In the DGII test environment («Pre-Certificación») every sequence expires on
+# this date, except consumer invoices (32) and credit notes (34), which carry
+# none («Descripción Técnica Servicios DGII»). The production date of the
+# company's own sequence is rejected there with code 145 (2026-10-29).
+TEST_SEQUENCE_EXPIRY = date(2028, 12, 31)
+
 # Types that carry the expiry date of the sequence.
 TYPES_WITH_SEQUENCE_EXPIRY = ("31", "33", "41", "43", "44", "45", "46", "47")
 # Types whose buyer must always have an RNC or cédula. A consumer invoice
@@ -109,7 +115,9 @@ def _id_doc(move, tipo):
         "TipoeCF": tipo,
         "eNCF": move.l10n_do_fiscal_number,
     }
-    if tipo in TYPES_WITH_SEQUENCE_EXPIRY:
+    if tipo in TYPES_WITH_SEQUENCE_EXPIRY and move.company_id.l10n_do_ecf_service_env == "TesteCF":
+        id_doc["FechaVencimientoSecuencia"] = _date(TEST_SEQUENCE_EXPIRY)
+    elif tipo in TYPES_WITH_SEQUENCE_EXPIRY:
         expiry = _sequence_expiry(move)
         if not expiry:
             raise UserError(
