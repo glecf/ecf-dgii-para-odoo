@@ -1,10 +1,12 @@
 import base64
 import logging
 import re
+import time
 from datetime import datetime, timedelta
 from urllib.parse import quote
 
 import pytz
+from psycopg2.errors import SerializationFailure
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
@@ -458,20 +460,30 @@ class AccountMove(models.Model):
             [(m, "_glecf_send", "to_send") for m in pending]
             + [(m, "_glecf_refresh", "sent") for m in waiting]
         ):
-            try:
-                # A fresh look at the invoice: it may have changed since the
-                # search (just posted, sent by another worker, back to draft).
-                self.env.cr.commit()
-                move.invalidate_recordset()
-                if move.glecf_state != wanted:
-                    continue
-                getattr(move.with_company(move.company_id), step)()
-                if move.glecf_state != wanted:
-                    move._glecf_notify_change()
-                self.env.cr.commit()
-            except Exception:
-                self.env.cr.rollback()
-                _logger.exception("GLECF: %s failed for %s", step, move.display_name)
+            # Up to three tries: right after posting, the invoice is often
+            # still being saved and the first write clashes. Trying again is
+            # safe: the «attempted» write comes before calling GLECF, and a
+            # second call with the same key gets back the same document.
+            for attempt in range(3):
+                try:
+                    # A fresh look at the invoice: it may have changed since the
+                    # search (just posted, sent by another worker, back to draft).
+                    self.env.cr.commit()
+                    move.invalidate_recordset()
+                    if move.glecf_state != wanted:
+                        break
+                    getattr(move.with_company(move.company_id), step)()
+                    if move.glecf_state != wanted:
+                        move._glecf_notify_change()
+                    self.env.cr.commit()
+                    break
+                except SerializationFailure:
+                    self.env.cr.rollback()
+                    time.sleep(2)
+                except Exception:
+                    self.env.cr.rollback()
+                    _logger.exception("GLECF: %s failed for %s", step, move.display_name)
+                    break
         # What is left of the plan changes with every e-CF sent: read it again
         # for the companies that sent something, and once a day for every
         # connected company (a company that is not an issuer today may be one
