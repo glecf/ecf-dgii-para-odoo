@@ -226,6 +226,13 @@ class ResCompany(models.Model):
         self.sudo().write({"glecf_api_key": answer["api_key"]})
         self._glecf_store_account(answer)
         try:
+            # The exchange answer has no plan and no issuer state: without
+            # this, Settings showed neither until «Check connection» or the
+            # daily pass (seen in Enterprise, 2026-10-29).
+            self._glecf_refresh_account()
+        except GlecfError:
+            pass
+        try:
             self._glecf_refresh_certificate()
         except GlecfError:
             # Connected anyway; the certificate shows up on «Check connection».
