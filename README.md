@@ -69,6 +69,24 @@ aplicaciones e instala **e-CF DGII para Odoo**.
 6. Publica tus facturas como siempre. Cada e-CF se firma y se envía a la DGII, y
    la respuesta vuelve a la factura.
 
+## Direcciones para la DGII
+
+Tus e-CF salen por la API de GLECF (`api.glecf.com`). Para que los e-CF de tus
+proveedores y las aprobaciones comerciales lleguen a GLECF, en la DGII se
+registran estas direcciones. En cada caja se escribe **solo `api.glecf.com`**:
+la DGII ya pone `https://` y completa el resto.
+
+| Campo de la DGII | Qué escribir |
+|---|---|
+| URL Recepción ECF | `api.glecf.com` |
+| URL Aprobación Comercial | `api.glecf.com` |
+| URL Autentificación (opcional) | `api.glecf.com` |
+
+Si ya eres emisor electrónico, se cambian en la Oficina Virtual, en
+«Mantenimiento Directorio de Facturadores Electrónicos». Si te estás
+certificando, van en el Portal de Certificación, durante el set de pruebas. El
+módulo te dice en Ajustes si ya están registradas.
+
 ## Tus datos
 
 Nada sale de Odoo hasta que lo aceptas en Ajustes. Al enviar un e-CF se mandan a

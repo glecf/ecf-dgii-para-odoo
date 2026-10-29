@@ -44,7 +44,7 @@
                             Ya eres emisor electrónico con otro programa. Puedes emitir con GLECF; los
                             e-CF de tus proveedores seguirán llegando a ese programa hasta que cambies
                             las direcciones en la DGII.
-                            <a href="https://app.glecf.com/ecf/configuracion" target="_blank">Cómo cambiarlas</a>
+                            Las direcciones están en «Direcciones de GLECF en la DGII», más abajo.
                         </div>
                         <div class="mt8" invisible="not glecf_plan_summary">
                             <field name="glecf_plan_summary" class="oe_inline"
@@ -87,6 +87,30 @@
                         </div>
                         <button name="%(l10n_do_ecf_glecf.action_glecf_certificate_wizard)d" type="action"
                                 string="Subir certificado" class="btn-link ps-0" icon="oi-arrow-right"/>
+                    </setting>
+                    <setting id="glecf_dgii_urls" string="Direcciones de GLECF en la DGII"
+                             help="Tus e-CF salen por la API de GLECF (api.glecf.com). En la DGII se registran estas direcciones para que los e-CF de tus proveedores y las aprobaciones comerciales lleguen a GLECF.">
+                        <div class="mt8 text-success" invisible="glecf_issuer_state != 'glecf'">
+                            Ya están registradas en la DGII.
+                        </div>
+                        <div class="row mt8">
+                            <span class="col-7 o_light_label">URL Recepción ECF</span>
+                            <span class="col-5 fw-bold">api.glecf.com</span>
+                        </div>
+                        <div class="row">
+                            <span class="col-7 o_light_label">URL Aprobación Comercial</span>
+                            <span class="col-5 fw-bold">api.glecf.com</span>
+                        </div>
+                        <div class="row">
+                            <span class="col-7 o_light_label">URL Autentificación (opcional)</span>
+                            <span class="col-5 fw-bold">api.glecf.com</span>
+                        </div>
+                        <div class="mt8 text-muted small">
+                            Escribe solo api.glecf.com: la DGII ya pone «https://» y completa el resto.
+                            Si ya eres emisor, se cambian en la Oficina Virtual, en «Mantenimiento
+                            Directorio de Facturadores Electrónicos». Si te estás certificando, van en el
+                            Portal de Certificación, durante el set de pruebas.
+                        </div>
                     </setting>
                     <setting id="glecf_sequences" string="Secuencias e-NCF"
                              help="Cada tipo de e-CF usa la secuencia que autorizó la DGII. Aquí va su fecha de vencimiento; el primer número se escribe en la primera factura de cada tipo y Odoo sigue desde ahí.">
