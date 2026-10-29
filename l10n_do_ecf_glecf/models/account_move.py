@@ -11,7 +11,15 @@ from psycopg2.errors import SerializationFailure
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
-from .ecf_builder import DR_TZ, PURCHASE_TYPES, SUPPORTED_TYPES, build_ecf_data, ecf_type
+from .ecf_builder import (
+    DR_TZ,
+    PURCHASE_TYPES,
+    SUPPORTED_TYPES,
+    TEST_SEQUENCE_EXPIRY,
+    _sequence_expiry,
+    build_ecf_data,
+    ecf_type,
+)
 from .glecf_client import GlecfError
 
 _logger = logging.getLogger(__name__)
@@ -93,6 +101,17 @@ class AccountMove(models.Model):
             return ""
         signed = pytz.utc.localize(self.l10n_do_ecf_sign_date).astimezone(DR_TZ)
         return signed.strftime("%d-%m-%Y %H:%M:%S")
+
+    def _glecf_sequence_expiry_text(self):
+        """The sequence expiry printed on the invoice: the same date sent to the
+        DGII (in the test environment, the DGII's own 31-12-2028), not the one
+        copied onto the invoice when it was created (2026-10-29)."""
+        self.ensure_one()
+        if self.company_id.l10n_do_ecf_service_env == "TesteCF":
+            expiry = TEST_SEQUENCE_EXPIRY
+        else:
+            expiry = _sequence_expiry(self)
+        return expiry.strftime("%d/%m/%Y") if expiry else ""
 
     # -- Which invoices -------------------------------------------------------
 
