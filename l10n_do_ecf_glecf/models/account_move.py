@@ -428,11 +428,11 @@ class AccountMove(models.Model):
     # -- Background job -------------------------------------------------------
 
     def _glecf_trigger_sync(self):
-        """Run the job in a few seconds, once the request that asked has been
-        saved: running it at once raced with saving the invoice (2026-10-29)."""
-        self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync")._trigger(
-            at=fields.Datetime.now() + timedelta(seconds=10)
-        )
+        """Run the job now. If it clashes with the invoice being saved, the
+        «attempted» write fails before anything is sent and the invoice goes
+        on the next pass (see _glecf_send). A delay did not help: Odoo's job
+        runner only wakes up once a minute for a job due later (2026-10-29)."""
+        self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync")._trigger()
 
     @api.model
     def _cron_glecf_sync(self, batch=50):
@@ -443,13 +443,14 @@ class AccountMove(models.Model):
         Searches run as superuser: the job serves every company.
         """
         moves = self.sudo()
-        pending = moves.search([
+        to_send = [
             ("state", "=", "posted"),
             ("glecf_state", "=", "to_send"),
             ("company_id.glecf_consent", "=", True),
             ("company_id.glecf_api_key", "!=", False),
             "|", ("glecf_requested", "=", True), ("company_id.glecf_auto_send", "=", True),
-        ], order="id", limit=batch)
+        ]
+        pending = moves.search(to_send, order="id", limit=batch)
         waiting = moves.search(
             [("glecf_state", "=", "sent")], order="glecf_last_check asc nulls first, id", limit=batch * 2
         )
@@ -501,7 +502,11 @@ class AccountMove(models.Model):
         # in the last quarter of an hour still waits, look again in 30 seconds
         # instead of the usual five minutes. Older ones wait for the usual run.
         fresh = fields.Datetime.subtract(fields.Datetime.now(), minutes=15)
-        if moves.search_count([("glecf_state", "=", "sent"), ("glecf_sent_at", ">=", fresh)]):
+        # Also what is still waiting to go out (it clashed with someone saving
+        # it): only what this job would send, or it would loop forever.
+        if moves.search_count(to_send) or moves.search_count(
+            [("glecf_state", "=", "sent"), ("glecf_sent_at", ">=", fresh)]
+        ):
             self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync")._trigger(
                 at=fields.Datetime.now() + timedelta(seconds=30)
             )
