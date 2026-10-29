@@ -18,11 +18,17 @@
         <xpath expr="//img[contains(@t-att-src, 'barcode_type=QR')]/../.." position="attributes">
             <attribute name="style" add="padding-left: 13mm; font-size: 9pt; line-height: 1.3" separator=";"/>
         </xpath>
-        <xpath expr="//span[@id='ecf_exp_date']" position="replace">
-            <span id="ecf_exp_date" t-out="o._glecf_sequence_expiry_text()"/>
-        </xpath>
         <xpath expr="//t[@t-if='o.l10n_do_ecf_sign_date']/span" position="attributes">
             <attribute name="t-out">o._glecf_sign_date_text()</attribute>
+        </xpath>
+    </template>
+
+    <!-- The sequence expiry printed is the one sent to the DGII (in the test
+         environment, the DGII's 31-12-2028), not the date copied onto the
+         invoice when it was created. -->
+    <template id="informations_ecf" inherit_id="l10n_do_accounting.informations">
+        <xpath expr="//span[@id='ecf_exp_date']" position="replace">
+            <span id="ecf_exp_date" t-out="o._glecf_sequence_expiry_text()"/>
         </xpath>
     </template>
 </odoo>
