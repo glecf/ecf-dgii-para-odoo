@@ -7,7 +7,7 @@
          - the signing date with its time, in Dominican time. -->
     <template id="report_invoice_document_ecf"
               inherit_id="l10n_do_accounting.report_invoice_document_inherited">
-        <xpath expr="//img[@alt='Barcode']" position="attributes">
+        <xpath expr="//img[contains(@t-att-src, 'barcode_type=QR')]" position="attributes">
             <attribute name="t-att-src">'/report/barcode/?barcode_type=QR&amp;width=400&amp;height=400&amp;value=' + o.l10n_do_electronic_stamp</attribute>
             <attribute name="style">width: 25mm; height: 25mm;</attribute>
         </xpath>
