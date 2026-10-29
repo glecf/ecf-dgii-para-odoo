@@ -28,6 +28,7 @@
                                 <field name="glecf_account_rnc" class="oe_inline"/>
                             </div>
                         </div>
+                        <field name="glecf_plan_low" invisible="1"/>
                         <div class="mt8" invisible="not glecf_plan_summary">
                             <field name="glecf_plan_summary" class="oe_inline"
                                    decoration-warning="glecf_plan_low"/>
