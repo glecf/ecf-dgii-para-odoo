@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 
 from odoo import _, fields, models
 from odoo.exceptions import UserError
+from odoo.http import request
 
 from .glecf_client import GlecfClient, GlecfError
 
@@ -107,7 +108,7 @@ class ResCompany(models.Model):
         _forget_expired_connections(params)
         state = secrets.token_urlsafe(24)
         verifier = secrets.token_urlsafe(48)
-        redirect_uri = self.get_base_url().rstrip("/") + CONNECT_PATH
+        redirect_uri = _base_url(self).rstrip("/") + CONNECT_PATH
         params.set_param(CONNECT_PARAM + state, json.dumps({
             "company_id": self.id,
             "uid": self.env.uid,
@@ -260,6 +261,18 @@ class ResCompany(models.Model):
                 "next": {"type": "ir.actions.client", "tag": "soft_reload"},
             },
         }
+
+
+def _base_url(company):
+    """Where the person is browsing Odoo right now.
+
+    `web.base.url` can still say http://localhost:8069 on a fresh install or
+    behind a proxy; coming back there would fail. The address of the current
+    request is the one that works for this person.
+    """
+    if request and request.httprequest:
+        return request.httprequest.url_root
+    return company.get_base_url()
 
 
 def _challenge(verifier):
