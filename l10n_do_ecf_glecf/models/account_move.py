@@ -178,7 +178,7 @@ class AccountMove(models.Model):
             # Back in draft or cancelled since it was queued.
             self.write({"glecf_state": False, "glecf_requested": False})
             return
-        mismatch = self.company_id._glecf_rnc_mismatch_message()
+        mismatch = self.company_id._glecf_rnc_mismatch_message() or self.company_id._glecf_not_issuer_message()
         if mismatch:
             self._glecf_fail(mismatch)
             return
@@ -359,8 +359,15 @@ class AccountMove(models.Model):
                 self.env.cr.rollback()
                 _logger.exception("GLECF: %s failed for %s", step, move.display_name)
         # What is left of the plan changes with every e-CF sent: read it again
-        # for the companies that sent something.
-        for company in pending.company_id:
+        # for the companies that sent something, and once a day for every
+        # connected company (a company that is not an issuer today may be one
+        # tomorrow).
+        day_ago = fields.Datetime.subtract(fields.Datetime.now(), days=1)
+        stale = self.env["res.company"].sudo().search([
+            ("glecf_api_key", "!=", False),
+            "|", ("glecf_account_checked", "=", False), ("glecf_account_checked", "<", day_ago),
+        ])
+        for company in pending.company_id | stale:
             try:
                 company._glecf_refresh_account()
                 self.env.cr.commit()

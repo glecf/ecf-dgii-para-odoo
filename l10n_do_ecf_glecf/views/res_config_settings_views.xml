@@ -29,6 +29,23 @@
                             </div>
                         </div>
                         <field name="glecf_plan_low" invisible="1"/>
+                        <field name="glecf_issuer_state" invisible="1"/>
+                        <div class="mt8 text-warning" invisible="glecf_issuer_state != 'no'">
+                            Tu empresa todavía no es emisor electrónico ante la DGII. Puedes probar en el
+                            ambiente de Pruebas; para facturar con valor fiscal, completa la certificación
+                            en GLECF.
+                            <div>
+                                <a href="https://app.glecf.com/certificacion-dgii" target="_blank">
+                                    Empezar la certificación
+                                </a>
+                            </div>
+                        </div>
+                        <div class="mt8 text-muted" invisible="glecf_issuer_state != 'otro_programa'">
+                            Ya eres emisor electrónico con otro programa. Puedes emitir con GLECF; los
+                            e-CF de tus proveedores seguirán llegando a ese programa hasta que cambies
+                            las direcciones en la DGII.
+                            <a href="https://app.glecf.com/ecf/configuracion" target="_blank">Cómo cambiarlas</a>
+                        </div>
                         <div class="mt8" invisible="not glecf_plan_summary">
                             <field name="glecf_plan_summary" class="oe_inline"
                                    decoration-warning="glecf_plan_low"/>

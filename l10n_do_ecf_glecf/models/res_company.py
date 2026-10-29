@@ -13,6 +13,7 @@ from .glecf_client import GlecfClient, GlecfError
 
 REGISTER_URL = "https://glecf.com/register"
 PLAN_URL = "https://app.glecf.com/cuenta"
+CERTIFICATION_URL = "https://app.glecf.com/certificacion-dgii"
 CONNECT_URL = "https://app.glecf.com/conectar/odoo"
 CONNECT_PATH = "/glecf/conectar"
 # A pending connection is kept this long: the person signs in to GLECF and
@@ -75,6 +76,20 @@ class ResCompany(models.Model):
     glecf_plan_label = fields.Char(string="Plan de GLECF", readonly=True, copy=False)
     glecf_ecf_limit = fields.Integer(readonly=True, copy=False)
     glecf_ecf_remaining = fields.Integer(readonly=True, copy=False)
+    # Whether the DGII has the company as an electronic issuer, as GLECF read
+    # it from the DGII directory (2026-10-29).
+    glecf_issuer_state = fields.Selection(
+        selection=[
+            ("glecf", "Emisor electrónico con GLECF"),
+            ("otro_programa", "Emisor electrónico con otro programa"),
+            ("no", "Todavía no es emisor electrónico"),
+            ("sin_respuesta", "No se pudo comprobar"),
+        ],
+        string="Emisor electrónico",
+        readonly=True,
+        copy=False,
+    )
+    glecf_account_checked = fields.Datetime(readonly=True, copy=False)
     glecf_plan_summary = fields.Char(compute="_compute_glecf_plan_summary")
     glecf_plan_low = fields.Boolean(compute="_compute_glecf_plan_summary")
 
@@ -145,6 +160,9 @@ class ResCompany(models.Model):
             "glecf_account_name": account.get("name") or False,
             "glecf_account_rnc": account.get("rnc") or False,
         }
+        values["glecf_account_checked"] = fields.Datetime.now()
+        if account.get("emisor_electronico"):
+            values["glecf_issuer_state"] = account["emisor_electronico"]
         if account.get("plan_label"):
             values.update({
                 "glecf_plan_label": account["plan_label"],
@@ -277,6 +295,19 @@ class ResCompany(models.Model):
         mismatch = self._glecf_rnc_mismatch_message()
         if mismatch:
             raise UserError(mismatch)
+        not_issuer = self._glecf_not_issuer_message()
+        if not_issuer:
+            raise UserError(not_issuer)
+
+    def _glecf_not_issuer_message(self):
+        """Why sending would fail: production, and the DGII does not have the
+        company as an electronic issuer. «Could not check» blocks nothing."""
+        if self.l10n_do_ecf_service_env == "eCF" and self.glecf_issuer_state == "no":
+            return _(
+                "%s todavía no es emisor electrónico ante la DGII, y en Producción la DGII "
+                "rechazaría el e-CF. Completa la certificación en GLECF (%s)."
+            ) % (self.name, CERTIFICATION_URL)
+        return False
 
     def _glecf_set_environment(self, glecf_environment):
         dgii_environment = DGII_ENVIRONMENTS.get((glecf_environment or "").lower())
