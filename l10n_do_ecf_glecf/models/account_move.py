@@ -1,6 +1,7 @@
 import base64
 import logging
 from datetime import datetime
+from urllib.parse import quote_plus
 
 import pytz
 
@@ -42,6 +43,18 @@ class AccountMove(models.Model):
     )
     glecf_document_id = fields.Char(string="GLECF document", copy=False, readonly=True)
     glecf_message = fields.Text(string="e-CF message", copy=False, readonly=True)
+    # The DGII verification link GLECF built from the signed XML. The printed
+    # QR uses it instead of rebuilding it here, so it always matches what the
+    # DGII received (same signing time, same total).
+    glecf_qr_url = fields.Char(string="DGII verification link", copy=False, readonly=True)
+
+    @api.depends("l10n_do_ecf_security_code", "l10n_do_ecf_sign_date", "invoice_date", "glecf_qr_url")
+    def _compute_l10n_do_electronic_stamp(self):
+        super()._compute_l10n_do_electronic_stamp()
+        # l10n_do_accounting writes the signing time as stored by Odoo, in UTC,
+        # four hours off the time in the XML: the DGII check would not match.
+        for move in self.filtered(lambda m: m.glecf_qr_url and m.state == "posted"):
+            move.l10n_do_electronic_stamp = quote_plus(move.glecf_qr_url, safe="%")
 
     # -- Which invoices -------------------------------------------------------
 
@@ -170,6 +183,8 @@ class AccountMove(models.Model):
         }
         if document.get("security_code"):
             values["l10n_do_ecf_security_code"] = document["security_code"]
+        if document.get("qr_url"):
+            values["glecf_qr_url"] = document["qr_url"]
         sign_date = _parse_sign_date(document.get("signature_date"))
         if sign_date:
             values["l10n_do_ecf_sign_date"] = sign_date

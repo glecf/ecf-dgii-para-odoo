@@ -729,6 +729,13 @@ msgstr ""
 "entrega a la DGII. No se envía nada hasta marcar esta casilla."
 
 #. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_account_bank_statement_line__glecf_qr_url
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_account_move__glecf_qr_url
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_account_payment__glecf_qr_url
+msgid "DGII verification link"
+msgstr "Enlace de verificación de la DGII"
+
+#. module: l10n_do_ecf_glecf
 #: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_account_bank_statement_line__glecf_message
 #: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_account_move__glecf_message
 #: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_account_payment__glecf_message
