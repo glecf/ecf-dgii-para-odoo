@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0-20260908\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 00:48+0000\n"
-"PO-Revision-Date: 2026-10-29 00:48+0000\n"
+"POT-Creation-Date: 2026-10-29 04:17+0000\n"
+"PO-Revision-Date: 2026-10-29 04:17+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -22,7 +22,9 @@ msgstr ""
 msgid ""
 "%(doc)s: a special regime invoice (E44) cannot charge ITBIS (line "
 "«%(line)s»)."
-msgstr "%(doc)s: una factura de régimen especial (E44) no puede cobrar ITBIS (línea «%(line)s»)."
+msgstr ""
+"%(doc)s: una factura de régimen especial (E44) no puede cobrar ITBIS (línea "
+"«%(line)s»)."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -45,7 +47,9 @@ msgstr "%(doc)s: la línea «%(line)s» tiene un descuento del 100%%."
 msgid ""
 "%(doc)s: line «%(line)s» has taxes other than ITBIS (%(taxes)s). This "
 "version does not send withholdings or selective taxes yet."
-msgstr "%(doc)s: la línea «%(line)s» tiene impuestos que no son ITBIS (%(taxes)s). Esta versión todavía no envía retenciones ni impuestos selectivos."
+msgstr ""
+"%(doc)s: la línea «%(line)s» tiene impuestos que no son ITBIS (%(taxes)s). "
+"Esta versión todavía no envía retenciones ni impuestos selectivos."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -53,7 +57,9 @@ msgstr "%(doc)s: la línea «%(line)s» tiene impuestos que no son ITBIS (%(taxe
 #, python-format
 msgid ""
 "%(doc)s: line «%(line)s» must have a single ITBIS of 18%% or 16%%, or none."
-msgstr "%(doc)s: la línea «%(line)s» debe llevar un solo ITBIS, del 18%% o del 16%%, o ninguno."
+msgstr ""
+"%(doc)s: la línea «%(line)s» debe llevar un solo ITBIS, del 18%% o del 16%%,"
+" o ninguno."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -69,7 +75,9 @@ msgstr "%(doc)s: la línea «%(line)s» necesita una cantidad mayor que cero."
 msgid ""
 "%(doc)s: the customer %(name)s needs a valid RNC (9 digits) or cédula (11 "
 "digits)."
-msgstr "%(doc)s: el cliente %(name)s necesita un RNC (9 dígitos) o una cédula (11 dígitos) válidos."
+msgstr ""
+"%(doc)s: el cliente %(name)s necesita un RNC (9 dígitos) o una cédula (11 "
+"dígitos) válidos."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -79,7 +87,10 @@ msgid ""
 "%(doc)s: the e-CF total (%(ecf)s) does not match the invoice total "
 "(%(odoo)s). This version only supports ITBIS 18%%, ITBIS 16%% and exempt "
 "lines."
-msgstr "%(doc)s: el total del e-CF (%(ecf)s) no cuadra con el de la factura (%(odoo)s). Esta versión solo admite ITBIS 18%%, ITBIS 16%% y líneas exentas."
+msgstr ""
+"%(doc)s: el total del e-CF (%(ecf)s) no cuadra con el de la factura "
+"(%(odoo)s). Esta versión solo admite ITBIS 18%%, ITBIS 16%% y líneas "
+"exentas."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -109,7 +120,9 @@ msgstr "%s no tiene líneas."
 msgid ""
 "%s has not accepted sending its invoices to GLECF yet (Settings > "
 "Invoicing)."
-msgstr "%s todavía no ha aceptado enviar sus facturas a GLECF (Ajustes > Facturación)."
+msgstr ""
+"%s todavía no ha aceptado enviar sus facturas a GLECF (Ajustes > "
+"Facturación)."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -118,7 +131,9 @@ msgstr "%s todavía no ha aceptado enviar sus facturas a GLECF (Ajustes > Factur
 msgid ""
 "%s was already sent to the DGII and cannot be changed. Issue a credit or "
 "debit note instead."
-msgstr "%s ya se envió a la DGII y no se puede cambiar. Emite una nota de crédito o de débito."
+msgstr ""
+"%s ya se envió a la DGII y no se puede cambiar. Emite una nota de crédito o "
+"de débito."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -127,7 +142,9 @@ msgstr "%s ya se envió a la DGII y no se puede cambiar. Emite una nota de créd
 msgid ""
 "%s: set the expiry date of the e-NCF sequence («Valid until») before sending"
 " it."
-msgstr "%s: indica la fecha de vencimiento de la secuencia e-NCF («Válido hasta») antes de enviarla."
+msgstr ""
+"%s: indica la fecha de vencimiento de la secuencia e-NCF («Válido hasta») "
+"antes de enviarla."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -136,7 +153,9 @@ msgstr "%s: indica la fecha de vencimiento de la secuencia e-NCF («Válido hast
 msgid ""
 "%s: the note must point to a posted invoice of this company (field "
 "«Modifies»)."
-msgstr "%s: la nota debe apuntar a una factura publicada de esta empresa (campo «Modifica»)."
+msgstr ""
+"%s: la nota debe apuntar a una factura publicada de esta empresa (campo "
+"«Modifica»)."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -174,6 +193,13 @@ msgstr "Aceptado"
 #: model:ir.model.fields.selection,name:l10n_do_ecf_glecf.selection__account_move__glecf_state__conditional
 msgid "Accepted with observations"
 msgstr "Aceptado con observaciones"
+
+#. module: l10n_do_ecf_glecf
+#. odoo-python
+#: code:addons/l10n_do_ecf_glecf/controllers/main.py:0
+#, python-format
+msgid "Back to Settings"
+msgstr "Volver a Ajustes"
 
 #. module: l10n_do_ecf_glecf
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.glecf_certificate_wizard_form
@@ -257,7 +283,19 @@ msgstr "Ajustes de configuración"
 #, python-format
 msgid ""
 "Connect %s to GLECF first: Settings > Invoicing > Electronic invoicing."
-msgstr "Conecta primero %s con GLECF: Ajustes > Facturación > Facturación electrónica."
+msgstr ""
+"Conecta primero %s con GLECF: Ajustes > Facturación > Facturación "
+"electrónica."
+
+#. module: l10n_do_ecf_glecf
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
+msgid "Connect again"
+msgstr "Volver a conectar"
+
+#. module: l10n_do_ecf_glecf
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
+msgid "Connect to GLECF"
+msgstr "Conectar con GLECF"
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -315,7 +353,9 @@ msgstr "Nombre mostrado"
 msgid ""
 "Each e-CF is sent a moment after it is posted. Otherwise, use Send to DGII "
 "on the invoice."
-msgstr "Cada e-CF se envía un momento después de publicarlo. Si no, usa «Enviar a la DGII» en la factura."
+msgstr ""
+"Cada e-CF se envía un momento después de publicarlo. Si no, usa «Enviar a la"
+" DGII» en la factura."
 
 #. module: l10n_do_ecf_glecf
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
@@ -360,7 +400,9 @@ msgstr "Conexión con GLECF"
 msgid ""
 "GLECF could not open the certificate: the password is wrong or the file is "
 "damaged."
-msgstr "GLECF no pudo abrir el certificado: la contraseña no es correcta o el archivo está dañado."
+msgstr ""
+"GLECF no pudo abrir el certificado: la contraseña no es correcta o el "
+"archivo está dañado."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -381,7 +423,9 @@ msgstr "Documento en GLECF"
 msgid ""
 "GLECF signs your e-CF with it. The file and its password are kept by GLECF, "
 "not by Odoo."
-msgstr "GLECF firma tus e-CF con él. El archivo y su contraseña los guarda GLECF, no Odoo."
+msgstr ""
+"GLECF firma tus e-CF con él. El archivo y su contraseña los guarda GLECF, no"
+" Odoo."
 
 #. module: l10n_do_ecf_glecf
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
@@ -416,6 +460,11 @@ msgstr "Última actualización el"
 
 #. module: l10n_do_ecf_glecf
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
+msgid "No account yet?"
+msgstr "¿Aún no tienes cuenta?"
+
+#. module: l10n_do_ecf_glecf
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
 msgid "No certificate yet."
 msgstr "Todavía no hay certificado."
 
@@ -423,6 +472,18 @@ msgstr "Todavía no hay certificado."
 #: model:ir.model.fields.selection,name:l10n_do_ecf_glecf.selection__account_move__glecf_state__error
 msgid "Not sent"
 msgstr "No enviado"
+
+#. module: l10n_do_ecf_glecf
+#. odoo-python
+#: code:addons/l10n_do_ecf_glecf/controllers/main.py:0
+#, python-format
+msgid "Only an administrator can connect Odoo to GLECF."
+msgstr "Solo un administrador puede conectar Odoo con GLECF."
+
+#. module: l10n_do_ecf_glecf
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
+msgid "Or paste one by hand:"
+msgstr "O pégala a mano:"
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -463,7 +524,9 @@ msgstr "Enviar el e-CF al publicar"
 msgid ""
 "Send each e-CF a moment after it is posted. If unchecked, use the «Send to "
 "DGII» button on the invoice."
-msgstr "Envía cada e-CF un momento después de publicarlo. Si no está marcado, usa el botón «Enviar a la DGII» de la factura."
+msgstr ""
+"Envía cada e-CF un momento después de publicarlo. Si no está marcado, usa el"
+" botón «Enviar a la DGII» de la factura."
 
 #. module: l10n_do_ecf_glecf
 #: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_res_company__glecf_consent
@@ -487,7 +550,9 @@ msgstr "Enviar al publicar"
 msgid ""
 "Set by your GLECF API key: each key belongs to one environment. It is "
 "updated with every invoice GLECF processes."
-msgstr "Lo fija tu clave de API de GLECF: cada clave es de un ambiente. Se actualiza con cada factura que procesa GLECF."
+msgstr ""
+"Lo fija tu clave de API de GLECF: cada clave es de un ambiente. Se actualiza"
+" con cada factura que procesa GLECF."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -518,7 +583,8 @@ msgstr "Pruebas"
 #: code:addons/l10n_do_ecf_glecf/models/res_company.py:0
 #, python-format
 msgid "The API key works. Certificate of %(name)s, valid until %(date)s."
-msgstr "La clave de API funciona. Certificado de %(name)s, válido hasta %(date)s."
+msgstr ""
+"La clave de API funciona. Certificado de %(name)s, válido hasta %(date)s."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -556,14 +622,20 @@ msgid ""
 "The GLECF account of this API key is %(account)s, RNC %(glecf)s, but the RNC"
 " of %(company)s in Odoo is %(odoo)s. The DGII would reject every invoice: "
 "use the API key of this company's GLECF account, or correct the RNC in Odoo."
-msgstr "La cuenta de GLECF de esta clave de API es %(account)s, RNC %(glecf)s, pero el RNC de %(company)s en Odoo es %(odoo)s. La DGII rechazaría todas las facturas: usa la clave de API de la cuenta de GLECF de esta empresa o corrige el RNC en Odoo."
+msgstr ""
+"La cuenta de GLECF de esta clave de API es %(account)s, RNC %(glecf)s, pero "
+"el RNC de %(company)s en Odoo es %(odoo)s. La DGII rechazaría todas las "
+"facturas: usa la clave de API de la cuenta de GLECF de esta empresa o "
+"corrige el RNC en Odoo."
 
 #. module: l10n_do_ecf_glecf
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.glecf_certificate_wizard_form
 msgid ""
 "The certificate goes straight to GLECF, which keeps it encrypted and signs your e-CF with it.\n"
 "                    Odoo does not keep the file or the password."
-msgstr "El certificado va directo a GLECF, que lo guarda cifrado y firma con él tus e-CF. Odoo no guarda ni el archivo ni la contraseña."
+msgstr ""
+"El certificado va directo a GLECF, que lo guarda cifrado y firma con él tus "
+"e-CF. Odoo no guarda ni el archivo ni la contraseña."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -571,6 +643,13 @@ msgstr "El certificado va directo a GLECF, que lo guarda cifrado y firma con él
 #, python-format
 msgid "The certificate must be a .p12 or .pfx file."
 msgstr "El certificado debe ser un archivo .p12 o .pfx."
+
+#. module: l10n_do_ecf_glecf
+#. odoo-python
+#: code:addons/l10n_do_ecf_glecf/controllers/main.py:0
+#, python-format
+msgid "The connection was cancelled. Nothing was changed."
+msgstr "Se canceló la conexión. No se cambió nada."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -585,6 +664,14 @@ msgstr "El e-CF no se envió: %s"
 #, python-format
 msgid "This API key is from another company"
 msgstr "Esta clave de API es de otra empresa"
+
+#. module: l10n_do_ecf_glecf
+#. odoo-python
+#: code:addons/l10n_do_ecf_glecf/controllers/main.py:0
+#: code:addons/l10n_do_ecf_glecf/controllers/main.py:0
+#, python-format
+msgid "This connection link has expired. Press «Connect to GLECF» again."
+msgstr "Este enlace de conexión caducó. Pulsa «Conectar con GLECF» otra vez."
 
 #. module: l10n_do_ecf_glecf
 #: model:ir.model.fields.selection,name:l10n_do_ecf_glecf.selection__account_move__glecf_state__to_send
@@ -626,7 +713,10 @@ msgid ""
 "When an e-CF is sent, its number, dates, amounts, lines and the data of your"
 " company and customer go to GLECF, which keeps them to deliver them to the "
 "DGII."
-msgstr "Al enviar un e-CF, su número, fechas, importes, líneas y los datos de tu empresa y de tu cliente van a GLECF, que los guarda para entregarlos a la DGII."
+msgstr ""
+"Al enviar un e-CF, su número, fechas, importes, líneas y los datos de tu "
+"empresa y de tu cliente van a GLECF, que los guarda para entregarlos a la "
+"DGII."
 
 #. module: l10n_do_ecf_glecf
 #: model:ir.model.fields,help:l10n_do_ecf_glecf.field_res_company__glecf_consent
@@ -634,7 +724,9 @@ msgstr "Al enviar un e-CF, su número, fechas, importes, líneas y los datos de 
 msgid ""
 "Your e-CF invoices are sent to GLECF, which signs them with your certificate"
 " and delivers them to the DGII. Nothing is sent until this is checked."
-msgstr "Tus facturas e-CF se envían a GLECF, que las firma con tu certificado y las entrega a la DGII. No se envía nada hasta marcar esta casilla."
+msgstr ""
+"Tus facturas e-CF se envían a GLECF, que las firma con tu certificado y las "
+"entrega a la DGII. No se envía nada hasta marcar esta casilla."
 
 #. module: l10n_do_ecf_glecf
 #: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_account_bank_statement_line__glecf_message
