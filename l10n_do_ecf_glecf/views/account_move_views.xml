@@ -12,7 +12,7 @@
                         groups="account.group_account_invoice"/>
                 <button name="action_glecf_retry" type="object" string="Reintentar envío"
                         class="btn-primary"
-                        invisible="glecf_state != 'review' or glecf_remote_status != 'error_signature'"
+                        invisible="glecf_state != 'review' or not glecf_retryable"
                         groups="account.group_account_invoice"/>
                 <button name="action_glecf_refresh" type="object" string="Ver respuesta de la DGII"
                         invisible="glecf_state != 'sent'"
@@ -26,6 +26,7 @@
                        decoration-warning="glecf_state == 'conditional'"
                        decoration-danger="glecf_state in ('rejected', 'error', 'review')"/>
                 <field name="glecf_remote_status" invisible="1"/>
+                <field name="glecf_retryable" invisible="1"/>
                 <field name="glecf_message" invisible="not glecf_message"/>
             </xpath>
         </field>

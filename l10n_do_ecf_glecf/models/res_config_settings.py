@@ -26,6 +26,8 @@ class ResConfigSettings(models.TransientModel):
     glecf_sequences_to_check = fields.Integer(related="company_id.glecf_sequences_to_check")
     glecf_plan_summary = fields.Char(related="company_id.glecf_plan_summary")
     glecf_plan_low = fields.Boolean(related="company_id.glecf_plan_low")
+    glecf_plan_label = fields.Char(related="company_id.glecf_plan_label")
+    glecf_plan_usage = fields.Char(related="company_id.glecf_plan_usage")
     glecf_issuer_state = fields.Selection(related="company_id.glecf_issuer_state")
     glecf_receive = fields.Boolean(related="company_id.glecf_receive", readonly=False)
     glecf_received_journal_id = fields.Many2one(

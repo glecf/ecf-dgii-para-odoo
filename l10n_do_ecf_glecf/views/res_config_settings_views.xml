@@ -7,10 +7,12 @@
         <field name="arch" type="xml">
             <xpath expr="//block[@id='invoicing_settings']" position="before">
                 <block title="Facturación electrónica (e-CF)" id="glecf_settings">
-                    <setting id="glecf_connection" string="Conexión con GLECF"
+                    <setting id="glecf_connection" string="Tu cuenta de GLECF"
                              help="GLECF firma tus e-CF con tu certificado y los envía a la DGII.">
                         <img src="/l10n_do_ecf_glecf/static/src/img/logo-glecf.svg" alt="GLECF"
                              class="mt8 mb8" style="height: 28px;"/>
+                        <field name="glecf_plan_low" invisible="1"/>
+                        <field name="glecf_issuer_state" invisible="1"/>
                         <div class="mt8" invisible="glecf_api_key">
                             <button name="action_glecf_connect" type="object"
                                     string="Conectar con GLECF" class="btn-primary"/>
@@ -20,16 +22,50 @@
                                         string="Crear una cuenta gratis en GLECF" class="btn-link p-0 align-baseline"/>
                             </div>
                         </div>
-                        <div class="row" invisible="not glecf_account_name">
-                            <label for="glecf_account_name" string="Cuenta de GLECF" class="col-lg-3 o_light_label"/>
-                            <div class="col">
-                                <field name="glecf_account_name" class="oe_inline"/>
-                                <span class="text-muted"> · RNC </span>
-                                <field name="glecf_account_rnc" class="oe_inline"/>
+                        <div class="mt8" invisible="not glecf_account_name">
+                            <field name="glecf_account_name" class="fw-bold"/>
+                            <div class="text-muted">
+                                RNC <field name="glecf_account_rnc" class="oe_inline"/>
                             </div>
                         </div>
-                        <field name="glecf_plan_low" invisible="1"/>
-                        <field name="glecf_issuer_state" invisible="1"/>
+                        <div class="mt16" invisible="not glecf_plan_label">
+                            <div class="fw-bold">
+                                Plan <field name="glecf_plan_label" class="oe_inline"/>
+                            </div>
+                            <field name="glecf_plan_usage" class="text-muted" decoration-warning="glecf_plan_low"/>
+                            <a href="https://app.glecf.com/cuenta" target="_blank"
+                               invisible="not glecf_plan_low">Mejorar el plan</a>
+                        </div>
+                        <div class="mt16" invisible="not glecf_api_key">
+                            <div>
+                                <span class="o_light_label">Ambiente de la DGII: </span>
+                                <field name="l10n_do_ecf_service_env" class="oe_inline fw-bold"/>
+                            </div>
+                            <div invisible="l10n_do_ecf_service_env == 'eCF' or glecf_issuer_state == 'no'">
+                                <button name="action_glecf_connect" type="object"
+                                        string="Cambiar a Producción" class="btn-link ps-0" icon="oi-arrow-right"/>
+                                <div class="text-muted small">
+                                    Vuelves a GLECF y eliges «Producción» al autorizar.
+                                </div>
+                            </div>
+                            <div class="text-muted small" invisible="glecf_issuer_state != 'no'">
+                                Producción se activa cuando la DGII tenga a tu empresa como emisor electrónico.
+                            </div>
+                        </div>
+                        <div class="mt8" invisible="not glecf_api_key">
+                            <button name="action_glecf_check_connection" type="object"
+                                    string="Comprobar conexión" class="btn-link ps-0"
+                                    icon="oi-arrow-right"/>
+                            <button name="action_glecf_connect" type="object"
+                                    string="Volver a conectar" class="btn-link"/>
+                        </div>
+                    </setting>
+                    <setting id="glecf_certificate" string="Estado ante la DGII"
+                             help="Si la DGII ya tiene a tu empresa como emisor electrónico, y el certificado con el que GLECF firma."
+                             invisible="not glecf_api_key">
+                        <div class="mt8 text-success" invisible="glecf_issuer_state != 'glecf'">
+                            Emisor electrónico ante la DGII, con GLECF.
+                        </div>
                         <div class="mt8 text-warning" invisible="glecf_issuer_state != 'no'">
                             Tu empresa todavía no es emisor electrónico ante la DGII. Puedes probar en el
                             ambiente de Pruebas; para facturar con valor fiscal, completa la certificación
@@ -43,50 +79,58 @@
                         <div class="mt8 text-muted" invisible="glecf_issuer_state != 'otro_programa'">
                             Ya eres emisor electrónico con otro programa. Puedes emitir con GLECF; los
                             e-CF de tus proveedores seguirán llegando a ese programa hasta que cambies
-                            las direcciones en la DGII.
-                            Las direcciones están en «Direcciones de GLECF en la DGII», más abajo.
+                            las direcciones en la DGII (más abajo).
                         </div>
-                        <div class="mt8" invisible="not glecf_plan_summary">
-                            <field name="glecf_plan_summary" class="oe_inline"
-                                   decoration-warning="glecf_plan_low"/>
-                            <a href="https://app.glecf.com/cuenta" target="_blank" class="ms-2"
-                               invisible="not glecf_plan_low">Mejorar el plan</a>
-                        </div>
-                        <div class="row">
-                            <label for="l10n_do_ecf_service_env" string="Ambiente de la DGII" class="col-lg-3 o_light_label"/>
-                            <field name="l10n_do_ecf_service_env"/>
-                        </div>
-                        <div invisible="not glecf_api_key">
-                            <button name="action_glecf_check_connection" type="object"
-                                    string="Comprobar conexión" class="btn-link ps-0"
-                                    icon="oi-arrow-right"/>
-                            <button name="action_glecf_connect" type="object"
-                                    string="Volver a conectar" class="btn-link"/>
-                        </div>
-                        <div class="row mt16">
-                            <label for="glecf_api_key" string="Clave de API" class="col-lg-3 o_light_label"/>
-                            <div class="col">
-                                <field name="glecf_api_key" password="True" placeholder="glecf_..."/>
-                                <div class="text-muted small" invisible="glecf_api_key">
-                                    O pégala a mano:
-                                    <a href="https://app.glecf.com/ecf/api-keys" target="_blank">Obtener tu clave de API</a>
-                                </div>
+                        <div class="mt16 o_light_label">Certificado digital</div>
+                        <div invisible="not glecf_certificate_name">
+                            <field name="glecf_certificate_name" class="fw-bold"/>
+                            <div class="text-muted">
+                                Válido hasta <field name="glecf_certificate_valid_until" class="oe_inline"/>
                             </div>
                         </div>
-                    </setting>
-                    <setting id="glecf_certificate" string="Certificado digital"
-                             help="GLECF firma tus e-CF con él. El archivo y su contraseña los guarda GLECF, no Odoo."
-                             invisible="not glecf_api_key">
-                        <div class="mt8" invisible="not glecf_certificate_name">
-                            <field name="glecf_certificate_name" class="oe_inline fw-bold"/>
-                            <span class="text-muted"> · válido hasta </span>
-                            <field name="glecf_certificate_valid_until" class="oe_inline"/>
-                        </div>
-                        <div class="mt8 text-muted" invisible="glecf_certificate_name">
+                        <div class="text-muted" invisible="glecf_certificate_name">
                             Todavía no hay certificado.
+                        </div>
+                        <div class="text-muted small">
+                            El archivo y su contraseña los guarda GLECF, no Odoo.
                         </div>
                         <button name="%(l10n_do_ecf_glecf.action_glecf_certificate_wizard)d" type="action"
                                 string="Subir certificado" class="btn-link ps-0" icon="oi-arrow-right"/>
+                    </setting>
+                    <setting id="glecf_sequences" string="Secuencias e-NCF"
+                             help="Cada tipo de e-CF usa la secuencia que autorizó la DGII. Aquí va su fecha de vencimiento; el primer número se escribe en la primera factura de cada tipo y Odoo sigue desde ahí.">
+                        <div class="mt8 text-warning" invisible="not glecf_sequences_to_check">
+                            Secuencias con la fecha de vencimiento que puso Odoo:
+                            <field name="glecf_sequences_to_check" class="oe_inline"/>.
+                            Compruébalas con tu autorización de la DGII.
+                        </div>
+                        <button name="action_glecf_sequences" type="object"
+                                string="Configurar las secuencias e-NCF" class="btn-link ps-0" icon="oi-arrow-right"/>
+                    </setting>
+                    <setting id="glecf_consent" string="Datos que se envían a GLECF"
+                             help="Al enviar un e-CF, su número, fechas, importes, líneas y los datos de tu empresa y de tu cliente van a GLECF, que los guarda para entregarlos a la DGII.">
+                        <field name="glecf_consent"/>
+                        <div class="mt8">
+                            <a href="https://glecf.com/legal#privacidad" target="_blank">Política de privacidad</a>
+                            <span class="text-muted"> · </span>
+                            <a href="https://glecf.com/legal#terminos" target="_blank">Términos del servicio</a>
+                        </div>
+                    </setting>
+                    <setting id="glecf_auto_send" string="Enviar al publicar"
+                             help="Cada e-CF se envía un momento después de publicarlo. Si no, usa «Enviar a la DGII» en la factura.">
+                        <field name="glecf_auto_send"/>
+                    </setting>
+                    <setting id="glecf_received" string="e-CF recibidos"
+                             help="Los e-CF que te mandan tus proveedores llegan a GLECF y entran aquí como facturas de proveedor en borrador, con el e-NCF del proveedor para el 606. Desde la factura puedes aceptarlos o rechazarlos."
+                             invisible="not glecf_api_key">
+                        <field name="glecf_receive"/>
+                        <div class="row mt8" invisible="not glecf_receive">
+                            <label for="glecf_received_journal_id" string="Diario" class="col-lg-3 o_light_label"/>
+                            <field name="glecf_received_journal_id" placeholder="El primero de compras"
+                                   options="{'no_create': True}"/>
+                        </div>
+                        <button name="action_glecf_fetch_received" type="object" string="Traer los recibidos ahora"
+                                class="btn-link ps-0" icon="oi-arrow-right" invisible="not glecf_receive"/>
                     </setting>
                     <setting id="glecf_dgii_urls" string="Direcciones de GLECF en la DGII"
                              help="Tus e-CF salen por la API de GLECF (api.glecf.com). En la DGII se registran estas direcciones para que los e-CF de tus proveedores y las aprobaciones comerciales lleguen a GLECF.">
@@ -112,40 +156,12 @@
                             Portal de Certificación, durante el set de pruebas.
                         </div>
                     </setting>
-                    <setting id="glecf_sequences" string="Secuencias e-NCF"
-                             help="Cada tipo de e-CF usa la secuencia que autorizó la DGII. Aquí va su fecha de vencimiento; el primer número se escribe en la primera factura de cada tipo y Odoo sigue desde ahí.">
-                        <div class="mt8 text-warning" invisible="not glecf_sequences_to_check">
-                            Secuencias con la fecha de vencimiento que puso Odoo:
-                            <field name="glecf_sequences_to_check" class="oe_inline"/>.
-                            Compruébalas con tu autorización de la DGII.
+                    <setting id="glecf_api_key" string="Clave de API"
+                             help="La pone sola «Conectar con GLECF». Pégala a mano solo si te la dio GLECF.">
+                        <field name="glecf_api_key" password="True" placeholder="glecf_..."/>
+                        <div class="text-muted small" invisible="glecf_api_key">
+                            <a href="https://app.glecf.com/ecf/api-keys" target="_blank">Obtener tu clave de API</a>
                         </div>
-                        <button name="action_glecf_sequences" type="object"
-                                string="Configurar las secuencias e-NCF" class="btn-link ps-0" icon="oi-arrow-right"/>
-                    </setting>
-                    <setting id="glecf_received" string="e-CF recibidos"
-                             help="Los e-CF que te mandan tus proveedores llegan a GLECF y entran aquí como facturas de proveedor en borrador, con el e-NCF del proveedor para el 606. Desde la factura puedes aceptarlos o rechazarlos."
-                             invisible="not glecf_api_key">
-                        <field name="glecf_receive"/>
-                        <div class="row mt8" invisible="not glecf_receive">
-                            <label for="glecf_received_journal_id" string="Diario" class="col-lg-3 o_light_label"/>
-                            <field name="glecf_received_journal_id" placeholder="El primero de compras"
-                                   options="{'no_create': True}"/>
-                        </div>
-                        <button name="action_glecf_fetch_received" type="object" string="Traer los recibidos ahora"
-                                class="btn-link ps-0" icon="oi-arrow-right" invisible="not glecf_receive"/>
-                    </setting>
-                    <setting id="glecf_consent" string="Datos que se envían a GLECF"
-                             help="Al enviar un e-CF, su número, fechas, importes, líneas y los datos de tu empresa y de tu cliente van a GLECF, que los guarda para entregarlos a la DGII.">
-                        <field name="glecf_consent"/>
-                        <div class="mt8">
-                            <a href="https://glecf.com/legal#privacidad" target="_blank">Política de privacidad</a>
-                            <span class="text-muted"> · </span>
-                            <a href="https://glecf.com/legal#terminos" target="_blank">Términos del servicio</a>
-                        </div>
-                    </setting>
-                    <setting id="glecf_auto_send" string="Enviar al publicar"
-                             help="Cada e-CF se envía un momento después de publicarlo. Si no, usa «Enviar a la DGII» en la factura.">
-                        <field name="glecf_auto_send"/>
                     </setting>
                 </block>
             </xpath>

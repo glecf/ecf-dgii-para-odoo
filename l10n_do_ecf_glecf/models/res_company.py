@@ -92,6 +92,8 @@ class ResCompany(models.Model):
     glecf_account_checked = fields.Datetime(readonly=True, copy=False)
     glecf_plan_summary = fields.Char(compute="_compute_glecf_plan_summary")
     glecf_plan_low = fields.Boolean(compute="_compute_glecf_plan_summary")
+    # The line under the plan name in Settings (the name goes in bold).
+    glecf_plan_usage = fields.Char(compute="_compute_glecf_plan_summary")
 
     glecf_sequences_to_check = fields.Integer(compute="_compute_glecf_sequences_to_check")
 
@@ -100,15 +102,21 @@ class ResCompany(models.Model):
             if not company.glecf_plan_label:
                 company.glecf_plan_summary = False
                 company.glecf_plan_low = False
+                company.glecf_plan_usage = False
             elif company.glecf_ecf_limit < 0:
                 company.glecf_plan_summary = _("Plan %s · comprobantes ilimitados") % company.glecf_plan_label
                 company.glecf_plan_low = False
+                company.glecf_plan_usage = _("Comprobantes ilimitados")
             else:
                 company.glecf_plan_summary = _("Plan %(plan)s · te quedan %(left)s de %(limit)s comprobantes este mes") % {
                     "plan": company.glecf_plan_label,
                     "left": company.glecf_ecf_remaining,
                     "limit": company.glecf_ecf_limit,
                 }
+                # Only e-CF issued in Production count (GLECF, 2026-10-29).
+                company.glecf_plan_usage = _(
+                    "Te quedan %(left)s de %(limit)s comprobantes este mes. Solo cuentan los de Producción."
+                ) % {"left": company.glecf_ecf_remaining, "limit": company.glecf_ecf_limit}
                 # Warn from the last tenth of the month's e-CF.
                 company.glecf_plan_low = company.glecf_ecf_remaining * 10 <= company.glecf_ecf_limit
 

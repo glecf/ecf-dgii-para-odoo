@@ -1,5 +1,6 @@
 import base64
 import logging
+import re
 from datetime import datetime
 from urllib.parse import quote
 
@@ -51,6 +52,9 @@ class AccountMove(models.Model):
     glecf_requested = fields.Boolean(copy=False, readonly=True)
     # The status GLECF gave the document, to know what «Reintentar» can do.
     glecf_remote_status = fields.Char(copy=False, readonly=True)
+    # It never reached the DGII (not signed, or the DGII refused the
+    # certificate when GLECF identified itself): «Reintentar envío» is safe.
+    glecf_retryable = fields.Boolean(copy=False, readonly=True)
     glecf_last_check = fields.Datetime(copy=False, readonly=True)
     glecf_document_id = fields.Char(string="Documento en GLECF", copy=False, readonly=True)
     glecf_message = fields.Text(string="Mensaje del e-CF", copy=False, readonly=True)
@@ -154,9 +158,12 @@ class AccountMove(models.Model):
 
     def action_glecf_retry(self):
         """Send again a document GLECF could not sign (e.g. no certificate yet)."""
-        for move in self.filtered(lambda m: m.glecf_state == "review" and m.glecf_remote_status == "error_signature"):
+        for move in self.filtered(lambda m: m.glecf_state == "review" and m.glecf_retryable):
             move.company_id._glecf_check_ready()
-            move.write({"glecf_state": "to_send", "glecf_requested": True, "glecf_message": False})
+            move.write({
+                "glecf_state": "to_send", "glecf_requested": True, "glecf_message": False,
+                "glecf_retryable": False,
+            })
         self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync")._trigger()
         return True
 
@@ -314,8 +321,13 @@ class AccountMove(models.Model):
             # Never reached the DGII either; usually there is no certificate yet.
             self._glecf_review(
                 _("GLECF no pudo firmar el e-CF: %s. Revisa el certificado digital en Ajustes "
-                  "y pulsa «Reintentar envío».") % message
+                  "y pulsa «Reintentar envío».") % message,
+                retryable=True,
             )
+        elif document.get("reintentable"):
+            # The DGII refused the certificate when GLECF identified itself:
+            # nothing was sent, so trying again is safe once it is fixed.
+            self._glecf_review(self._glecf_certificate_refused_text(message), retryable=True)
         elif (document.get("retry_count") or 0) >= GLECF_RETRIES:
             # Sending or the DGII answer failed and GLECF stopped retrying. It
             # may be at the DGII: nobody resends it from here.
@@ -326,8 +338,28 @@ class AccountMove(models.Model):
         else:
             self._glecf_note(_("GLECF lo está reintentando: %s") % message)
 
-    def _glecf_review(self, message):
-        self.write({"glecf_state": "review", "glecf_message": message, "glecf_requested": False})
+    @staticmethod
+    def _glecf_certificate_refused_text(message):
+        """What to do when the DGII refuses the certificate, without the jargon."""
+        quoted = re.search(r"[\"«]([^\"»]+)[\"»]", message or "")
+        dgii = quoted.group(1).strip() if quoted else (message or "")
+        if "delegad" in dgii.lower():
+            return _(
+                "La DGII no aceptó el certificado: la persona del certificado todavía no puede firmar "
+                "por la empresa («%s»). El administrador de e-CF de la empresa debe darle el rol de "
+                "Firmante en la Oficina Virtual de la DGII (Delegación de e-CF > Delegación de Roles). "
+                "El comprobante no llegó a la DGII: cuando esté hecho, pulsa «Reintentar envío»."
+            ) % dgii
+        return _(
+            "La DGII no aceptó el certificado: «%s». El comprobante no llegó a la DGII: revisa el "
+            "certificado y pulsa «Reintentar envío»."
+        ) % dgii
+
+    def _glecf_review(self, message, retryable=False):
+        self.write({
+            "glecf_state": "review", "glecf_message": message, "glecf_requested": False,
+            "glecf_retryable": retryable,
+        })
         self.message_post(body=message)
 
     # -- Background job -------------------------------------------------------
