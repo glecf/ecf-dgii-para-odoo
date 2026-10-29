@@ -364,10 +364,21 @@ class AccountMove(models.Model):
         if motivo:
             body += " " + _("Motivo: %s") % motivo
         self.message_post(body=body)
-        # A rejected bill must not reach the 606: a draft is cancelled here; a
-        # posted one is left for the person to reverse, saying so.
+        # A rejected bill must not reach the 606. A draft cannot be cancelled
+        # (l10n_do_accounting forbids cancelling a fiscal document never
+        # posted), so it is kept but can no longer be posted; a posted one is
+        # left for the person to reverse, saying so.
         if estado == "rechazado":
-            if self.state == "draft":
-                self.button_cancel()
-            elif self.state == "posted":
+            if self.state == "posted":
                 self.message_post(body=_("Esta factura ya estaba publicada: anúlala si no corresponde."))
+            else:
+                self.message_post(body=_("Rechazada: no se podrá publicar. Puedes eliminar este borrador."))
+
+    def _post(self, soft=True):
+        rejected = self.filtered(lambda m: m.glecf_approval_state == "rechazado")
+        if rejected:
+            raise UserError(
+                _("Rechazaste el e-CF %s ante la DGII: no se publica ni va al 606.")
+                % ", ".join(rejected.mapped(lambda m: m.l10n_do_fiscal_number or m.name))
+            )
+        return super()._post(soft)
