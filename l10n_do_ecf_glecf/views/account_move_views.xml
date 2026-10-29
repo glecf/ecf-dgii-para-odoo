@@ -8,7 +8,11 @@
             <xpath expr="//header/button[@name='button_draft']" position="before">
                 <button name="action_glecf_send" type="object" string="Enviar a la DGII"
                         class="btn-primary"
-                        invisible="glecf_state not in ('to_send', 'error')"
+                        invisible="state != 'posted' or glecf_state not in ('to_send', 'error')"
+                        groups="account.group_account_invoice"/>
+                <button name="action_glecf_retry" type="object" string="Reintentar envío"
+                        class="btn-primary"
+                        invisible="glecf_state != 'review' or glecf_remote_status != 'error_signature'"
                         groups="account.group_account_invoice"/>
                 <button name="action_glecf_refresh" type="object" string="Ver respuesta de la DGII"
                         invisible="glecf_state != 'sent'"
@@ -20,7 +24,8 @@
                        decoration-info="glecf_state in ('to_send', 'sent')"
                        decoration-success="glecf_state == 'accepted'"
                        decoration-warning="glecf_state == 'conditional'"
-                       decoration-danger="glecf_state in ('rejected', 'error')"/>
+                       decoration-danger="glecf_state in ('rejected', 'error', 'review')"/>
+                <field name="glecf_remote_status" invisible="1"/>
                 <field name="glecf_message" invisible="not glecf_message"/>
             </xpath>
         </field>
@@ -36,7 +41,7 @@
                        decoration-info="glecf_state in ('to_send', 'sent')"
                        decoration-success="glecf_state == 'accepted'"
                        decoration-warning="glecf_state == 'conditional'"
-                       decoration-danger="glecf_state in ('rejected', 'error')"/>
+                       decoration-danger="glecf_state in ('rejected', 'error', 'review')"/>
             </field>
         </field>
     </record>
@@ -48,7 +53,7 @@
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='draft']" position="before">
                 <filter name="glecf_attention" string="e-CF por revisar"
-                        domain="[('glecf_state', 'in', ('error', 'rejected', 'conditional'))]"/>
+                        domain="[('glecf_state', 'in', ('error', 'rejected', 'conditional', 'review'))]"/>
                 <separator/>
             </xpath>
         </field>

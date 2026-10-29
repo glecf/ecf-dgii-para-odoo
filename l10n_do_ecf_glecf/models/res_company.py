@@ -6,7 +6,7 @@ import time
 from urllib.parse import urlencode
 
 from odoo import _, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 from odoo.http import request
 
 from .glecf_client import GlecfClient, GlecfError
@@ -79,6 +79,13 @@ class ResCompany(models.Model):
                 types.search(types._glecf_issued_domain(company)).filtered("glecf_expiry_unchecked")
             )
 
+    def _glecf_check_admin(self):
+        # These write the key, the account and the environment as superuser:
+        # only an administrator may run them, also when called from outside
+        # the Settings screen.
+        if not self.env.user.has_group("base.group_system"):
+            raise AccessError(_("Solo un administrador puede conectar la empresa con GLECF."))
+
     def action_glecf_sequences(self):
         """The e-NCF sequences of the e-CF types this company issues, in one list."""
         self.ensure_one()
@@ -125,6 +132,7 @@ class ResCompany(models.Model):
         together with the verifier, server to server. So the API key never
         travels through the browser, and a code seen by someone else is useless.
         """
+        self._glecf_check_admin()
         self.ensure_one()
         params = self.env["ir.config_parameter"].sudo()
         _forget_expired_connections(params)
@@ -182,6 +190,7 @@ class ResCompany(models.Model):
 
     def action_glecf_create_account(self):
         """Open the GLECF sign-up with this company's data already filled in."""
+        self._glecf_check_admin()
         self.ensure_one()
         address = ", ".join(filter(None, [self.street, self.street2, self.city]))
         params = {
@@ -243,6 +252,7 @@ class ResCompany(models.Model):
             self.sudo().l10n_do_ecf_service_env = dgii_environment
 
     def action_glecf_check_connection(self):
+        self._glecf_check_admin()
         self.ensure_one()
         try:
             self._glecf_refresh_account()

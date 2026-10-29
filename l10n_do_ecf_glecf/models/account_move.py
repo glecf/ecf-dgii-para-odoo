@@ -20,8 +20,10 @@ FINAL = {
     "accepted_conditional": "conditional",
     "rejected": "rejected",
 }
-# Invoices in these states already reached GLECF: they cannot go back to draft.
-SENT_STATES = ("sent", "accepted", "conditional")
+# GLECF retries a signing, sending or status error this many times by itself.
+GLECF_RETRIES = 3
+# Invoices in these states may already be at the DGII: never back to draft.
+LOCKED_STATES = ("sent", "accepted", "conditional", "review")
 
 
 class AccountMove(models.Model):
@@ -35,12 +37,21 @@ class AccountMove(models.Model):
             ("conditional", "Aceptado con observaciones"),
             ("rejected", "Rechazado"),
             ("error", "No enviado"),
+            ("review", "Requiere revisión"),
         ],
         string="Estado del e-CF",
         copy=False,
         readonly=True,
         tracking=True,
     )
+    # Set before calling GLECF and kept: if the answer is lost (a timeout), the
+    # document may exist in GLECF, so the invoice must not change anymore.
+    glecf_attempted = fields.Boolean(copy=False, readonly=True)
+    # Someone pressed «Enviar a la DGII»: send it even without «Enviar al publicar».
+    glecf_requested = fields.Boolean(copy=False, readonly=True)
+    # The status GLECF gave the document, to know what «Reintentar» can do.
+    glecf_remote_status = fields.Char(copy=False, readonly=True)
+    glecf_last_check = fields.Datetime(copy=False, readonly=True)
     glecf_document_id = fields.Char(string="Documento en GLECF", copy=False, readonly=True)
     glecf_message = fields.Text(string="Mensaje del e-CF", copy=False, readonly=True)
     # The DGII verification link GLECF built from the signed XML. The printed
@@ -104,21 +115,49 @@ class AccountMove(models.Model):
 
     def button_draft(self):
         for move in self:
-            if move.glecf_state in SENT_STATES:
+            if move.glecf_state in LOCKED_STATES or (move.glecf_state == "to_send" and move.glecf_attempted):
                 raise UserError(
-                    _("%s ya se envió a la DGII y no se puede cambiar. "
-                      "Emite una nota de crédito o de débito.") % move.name
+                    _("%s ya se envió a GLECF y puede estar en la DGII: no se puede cambiar. "
+                      "Si hace falta corregirla, emite una nota de crédito o de débito.") % move.name
                 )
+        # Back in draft, nothing must go out until it is posted again.
+        self.filtered(lambda m: m.glecf_state in ("to_send", "error")).write({
+            "glecf_state": False, "glecf_requested": False,
+        })
         return super().button_draft()
 
     # -- Sending --------------------------------------------------------------
 
     def action_glecf_send(self):
-        for move in self:
-            if move.glecf_state not in ("to_send", "error"):
-                continue
+        """«Enviar a la DGII»: queue them and let the job send them.
+
+        Sending here, in the user's request, would undo the invoices already
+        delivered to GLECF if a later one failed, and a long list could run
+        past the time Odoo gives a request.
+        """
+        moves = self.filtered(lambda m: m.glecf_state in ("to_send", "error") and m._glecf_applies())
+        for company in moves.company_id:
+            company._glecf_check_ready()
+        moves.write({"glecf_state": "to_send", "glecf_requested": True, "glecf_message": False})
+        if moves:
+            self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync")._trigger()
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "type": "info",
+                "message": _("%s e-CF se enviarán a la DGII en un momento.") % len(moves)
+                if moves else _("No hay e-CF por enviar en lo seleccionado."),
+                "next": {"type": "ir.actions.act_window_close"},
+            },
+        }
+
+    def action_glecf_retry(self):
+        """Send again a document GLECF could not sign (e.g. no certificate yet)."""
+        for move in self.filtered(lambda m: m.glecf_state == "review" and m.glecf_remote_status == "error_signature"):
             move.company_id._glecf_check_ready()
-            move._glecf_send()
+            move.write({"glecf_state": "to_send", "glecf_requested": True, "glecf_message": False})
+        self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync")._trigger()
         return True
 
     def action_glecf_refresh(self):
@@ -127,11 +166,18 @@ class AccountMove(models.Model):
         return True
 
     def _glecf_idempotency_key(self):
+        # The e-NCF goes in the key: a copy of this database (with the same
+        # uuid) or a new number on the same invoice never takes the document
+        # of another invoice.
         db_uuid = self.env["ir.config_parameter"].sudo().get_param("database.uuid", "")
-        return "odoo-%s-%s" % (db_uuid.replace("-", "")[:12], self.id)
+        return "odoo-%s-%s-%s" % (db_uuid.replace("-", "")[:12], self.id, self.l10n_do_fiscal_number)
 
     def _glecf_send(self):
         self.ensure_one()
+        if not self._glecf_applies():
+            # Back in draft or cancelled since it was queued.
+            self.write({"glecf_state": False, "glecf_requested": False})
+            return
         mismatch = self.company_id._glecf_rnc_mismatch_message()
         if mismatch:
             self._glecf_fail(mismatch)
@@ -145,24 +191,44 @@ class AccountMove(models.Model):
             "idempotency_key": self._glecf_idempotency_key(),
             "ecf_data": ecf_data,
         }
+        self.write({"glecf_attempted": True})
         try:
             answer = self.company_id._glecf_client().submit(payload)
         except GlecfError as error:
+            if error.transient:
+                # GLECF did not answer: maybe it never got it, maybe it did.
+                # The same key makes the next try safe either way.
+                self._glecf_note(_("GLECF no respondió (%s). Se reintentará solo en unos minutos.") % error.message)
+                return
             self._glecf_fail(error.message)
             return
 
         self.write({
             "glecf_document_id": answer.get("id"),
             "glecf_state": "sent",
+            "glecf_attempted": False,
+            "glecf_requested": False,
             "glecf_message": False,
         })
         if (answer.get("status") or "").lower() in WAITING:
             self.message_post(body=_("e-CF enviado a GLECF. Esperando la respuesta de la DGII."))
-        self._glecf_apply(answer)
+        # The answer to a submission is short (no security code, QR or XML,
+        # and no error detail): read the whole document.
+        self._glecf_refresh()
 
     def _glecf_fail(self, message):
-        self.write({"glecf_state": "error", "glecf_message": message})
+        # A clear answer: whatever GLECF has, it is not a lost document.
+        self.write({
+            "glecf_state": "error", "glecf_message": message,
+            "glecf_attempted": False, "glecf_requested": False,
+        })
         self.message_post(body=_("El e-CF no se envió: %s") % message)
+
+    def _glecf_note(self, message):
+        """Show a message on the invoice, once, without changing its state."""
+        if self.glecf_message != message:
+            self.write({"glecf_message": message})
+            self.message_post(body=message)
 
     # -- Reading the answer ---------------------------------------------------
 
@@ -170,6 +236,7 @@ class AccountMove(models.Model):
         self.ensure_one()
         if not self.glecf_document_id:
             return
+        self.write({"glecf_last_check": fields.Datetime.now()})
         try:
             document = self.company_id._glecf_client().get_document(self.glecf_document_id)
         except GlecfError as error:
@@ -180,14 +247,19 @@ class AccountMove(models.Model):
     def _glecf_apply(self, document):
         """Update the invoice with what GLECF says about its document."""
         status = (document.get("status") or "").lower()
+        self.write({"glecf_remote_status": status})
+        encf = document.get("encf")
+        if encf and self.l10n_do_fiscal_number and encf != self.l10n_do_fiscal_number:
+            self._glecf_review(
+                _("GLECF devolvió el comprobante %(theirs)s, no el %(ours)s de esta factura. "
+                  "No se ha tocado nada: escribe a soporte@glecf.com.")
+                % {"theirs": encf, "ours": self.l10n_do_fiscal_number}
+            )
+            return
         if status in WAITING:
             return
         if status.startswith("error_"):
-            message = document.get("last_error") or document.get("message") or status
-            # A submission error is retried by GLECF itself; a validation
-            # error means the data must be corrected.
-            if status == "error_validation":
-                self._glecf_fail(message)
+            self._glecf_apply_error(document, status)
             return
         state = FINAL.get(status)
         if not state:
@@ -197,6 +269,7 @@ class AccountMove(models.Model):
         values = {
             "glecf_state": state,
             "glecf_message": document.get("dgii_response_message") or False,
+            "glecf_attempted": False,
         }
         if document.get("security_code"):
             values["l10n_do_ecf_security_code"] = document["security_code"]
@@ -211,12 +284,40 @@ class AccountMove(models.Model):
         self.write(values)
 
         if state == "rejected":
-            body = _("La DGII rechazó el e-CF: %s") % (values["glecf_message"] or "-")
+            body = _("La DGII rechazó el e-CF: %s. Corrige la factura y vuelve a publicarla: "
+                     "se reenviará con el mismo e-NCF. Si la DGII responde que esa secuencia ya se "
+                     "usó, cancela esta factura y créala de nuevo para que tome otro número.") % (
+                values["glecf_message"] or "-")
         elif state == "conditional":
             body = _("La DGII aceptó el e-CF con observaciones: %s") % (values["glecf_message"] or "-")
         else:
             body = _("La DGII aceptó el e-CF.")
         self.message_post(body=body)
+
+    def _glecf_apply_error(self, document, status):
+        message = document.get("last_error") or document.get("message") or status
+        if status == "error_validation":
+            # Bad data: it never reached the DGII. Correct and post again.
+            self._glecf_fail(message)
+        elif status == "error_signature":
+            # Never reached the DGII either; usually there is no certificate yet.
+            self._glecf_review(
+                _("GLECF no pudo firmar el e-CF: %s. Revisa el certificado digital en Ajustes "
+                  "y pulsa «Reintentar envío».") % message
+            )
+        elif (document.get("retry_count") or 0) >= GLECF_RETRIES:
+            # Sending or the DGII answer failed and GLECF stopped retrying. It
+            # may be at the DGII: nobody resends it from here.
+            self._glecf_review(
+                _("GLECF no pudo confirmar este e-CF con la DGII: %s. Escribe a soporte@glecf.com "
+                  "para revisarlo; no lo vuelvas a emitir.") % message
+            )
+        else:
+            self._glecf_note(_("GLECF lo está reintentando: %s") % message)
+
+    def _glecf_review(self, message):
+        self.write({"glecf_state": "review", "glecf_message": message, "glecf_requested": False})
+        self.message_post(body=message)
 
     # -- Background job -------------------------------------------------------
 
@@ -225,23 +326,27 @@ class AccountMove(models.Model):
         """Send what is waiting and read the answers of what was sent.
 
         Each invoice is committed on its own, so a failure never undoes the
-        invoices sent before it.
+        invoices sent before it, and one that breaks never stops the rest.
+        Searches run as superuser: the job serves every company.
         """
-        pending = self.search([
+        moves = self.sudo()
+        pending = moves.search([
+            ("state", "=", "posted"),
             ("glecf_state", "=", "to_send"),
-            ("company_id.glecf_auto_send", "=", True),
             ("company_id.glecf_consent", "=", True),
-        ], limit=batch)
-        for move in pending:
-            if not move.company_id.sudo().glecf_api_key:
-                continue
-            move._glecf_send()
-            self.env.cr.commit()
-
-        waiting = self.search([("glecf_state", "=", "sent")], order="write_date asc", limit=batch * 2)
-        for move in waiting:
-            move._glecf_refresh()
-            self.env.cr.commit()
+            ("company_id.glecf_api_key", "!=", False),
+            "|", ("glecf_requested", "=", True), ("company_id.glecf_auto_send", "=", True),
+        ], order="id", limit=batch)
+        waiting = moves.search(
+            [("glecf_state", "=", "sent")], order="glecf_last_check asc nulls first, id", limit=batch * 2
+        )
+        for move, step in [(m, "_glecf_send") for m in pending] + [(m, "_glecf_refresh") for m in waiting]:
+            try:
+                getattr(move.with_company(move.company_id), step)()
+                self.env.cr.commit()
+            except Exception:
+                self.env.cr.rollback()
+                _logger.exception("GLECF: %s failed for %s", step, move.display_name)
 
 
 def _parse_sign_date(text):

@@ -8,6 +8,8 @@ checked here first, so the person posting the invoice learns it in Odoo.
 
 from datetime import datetime
 
+import re
+
 import pytz
 
 from odoo import _
@@ -24,8 +26,15 @@ SUPPORTED_TYPES = ("31", "32", "33", "34", "41", "43", "44", "45", "46", "47")
 PURCHASE_TYPES = ("41", "43", "47")
 # Types that carry the expiry date of the sequence.
 TYPES_WITH_SEQUENCE_EXPIRY = ("31", "33", "41", "43", "44", "45", "46", "47")
-# Types whose buyer must have an RNC or cédula.
-TYPES_WITH_BUYER_ID = ("31", "33", "34", "41", "44", "45")
+# Types whose buyer must always have an RNC or cédula. A consumer invoice
+# (32) and its notes (33, 34) only need it from RD$250,000.
+TYPES_WITH_BUYER_ID = ("31", "41", "44", "45")
+CONSUMER_ID_FROM = 250000
+# Types whose buyer may be a foreigner with a foreign tax id.
+TYPES_WITH_FOREIGN_ID = ("32", "33", "34", "46", "47")
+MAX_LINES = 1000
+# The e-mail pattern of the DGII format (CorreoValidationType): one address.
+EMAIL = re.compile(r"^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$")
 # Types whose lines carry withholdings (Retencion), mandatory on every line.
 TYPES_WITH_WITHHOLDING = ("41", "47")
 
@@ -88,6 +97,8 @@ def _check_invoice(move, tipo):
         raise UserError(_("%s no tiene número e-NCF.") % move.name)
     if not move.invoice_date:
         raise UserError(_("%s no tiene fecha de factura.") % move.name)
+    if len(move.invoice_line_ids.filtered(lambda line: line.display_type == "product")) > MAX_LINES:
+        raise UserError(_("%(doc)s tiene más de %(max)s líneas, el máximo de un e-CF.") % {"doc": move.name, "max": MAX_LINES})
 
 
 # -- Header ------------------------------------------------------------------
@@ -99,12 +110,19 @@ def _id_doc(move, tipo):
         "eNCF": move.l10n_do_fiscal_number,
     }
     if tipo in TYPES_WITH_SEQUENCE_EXPIRY:
-        if not move.l10n_do_ncf_expiration_date:
+        expiry = _sequence_expiry(move)
+        if not expiry:
             raise UserError(
-                _("%s: indica la fecha de vencimiento de la secuencia e-NCF («Válido hasta») antes de enviarla.")
-                % move.name
+                _("%s: indica la fecha de vencimiento de la secuencia e-NCF en Ajustes > Facturación > "
+                  "Secuencias e-NCF antes de enviarla.") % move.name
             )
-        id_doc["FechaVencimientoSecuencia"] = _date(move.l10n_do_ncf_expiration_date)
+        if expiry < datetime.now(DR_TZ).date():
+            raise UserError(
+                _("%(doc)s: la secuencia E%(type)s venció el %(date)s y la DGII rechazaría el e-CF. "
+                  "Pide una nueva a la DGII y pon su fecha en Ajustes > Facturación > Secuencias e-NCF.")
+                % {"doc": move.name, "type": tipo, "date": _date(expiry)}
+            )
+        id_doc["FechaVencimientoSecuencia"] = _date(expiry)
     if tipo == "34":
         id_doc["IndicadorNotaCredito"] = _credit_note_indicator(move)
     # Amounts are sent without ITBIS. Minor expenses, exports and payments
@@ -115,11 +133,16 @@ def _id_doc(move, tipo):
     if tipo not in PURCHASE_TYPES:
         id_doc["TipoIngresos"] = move.l10n_do_income_type or "01"
 
+    # Cash if it is paid, or if it is due the same day: the job sends it right
+    # after posting, usually before the payment is registered.
+    cash = move.payment_state in ("paid", "in_payment") or (
+        not move.invoice_date_due or move.invoice_date_due <= move.invoice_date
+    )
     if tipo == "43":
         # The format of a minor expense has no payment deadline.
-        if move.payment_state in ("paid", "in_payment"):
+        if cash:
             id_doc["TipoPago"] = "1"
-    elif tipo == "34" or move.payment_state in ("paid", "in_payment"):
+    elif tipo == "34" or cash:
         id_doc["TipoPago"] = "1"
     else:
         # On credit: the DGII requires the payment deadline, never before the
@@ -128,6 +151,40 @@ def _id_doc(move, tipo):
         due = max(move.invoice_date_due or move.invoice_date, move.invoice_date)
         id_doc["FechaLimitePago"] = _date(due)
     return id_doc
+
+
+def _sequence_expiry(move):
+    """The expiry of the sequence as it is set now, not as it was copied to the
+    invoice: l10n_do_accounting copies it only when the type or the journal
+    change, so a date corrected later would never reach an invoice already
+    posted."""
+    sequence = move.journal_id.l10n_do_document_type_ids.filtered(
+        lambda doc: doc.l10n_latam_document_type_id == move.l10n_latam_document_type_id
+    )[:1]
+    return sequence.l10n_do_ncf_expiration_date or move.l10n_do_ncf_expiration_date
+
+
+def _email(text):
+    """The first valid address, or None: the field is optional, and an address
+    the DGII format does not take would reject the whole e-CF."""
+    for candidate in re.split(r"[,;\s]+", text or ""):
+        candidate = candidate.strip("<>\"'")
+        if len(candidate) <= 80 and EMAIL.match(candidate):
+            return candidate
+    return None
+
+
+def _buyer_id_required(move, tipo):
+    if tipo in TYPES_WITH_BUYER_ID:
+        return True
+    if tipo == "32":
+        return abs(move.amount_total) >= CONSUMER_ID_FROM
+    if tipo in ("33", "34"):
+        origin = _origin(move)
+        if ecf_type(origin) == "32":
+            return abs(origin.amount_total) >= CONSUMER_ID_FROM
+        return True
+    return False
 
 
 def _issuer(move):
@@ -144,8 +201,9 @@ def _issuer(move):
         "DireccionEmisor": address[:100],
         "FechaEmision": _date(move.invoice_date),
     }
-    if company.email:
-        issuer["CorreoEmisor"] = company.email.strip()[:80]
+    email = _email(company.email)
+    if email:
+        issuer["CorreoEmisor"] = email
     return issuer
 
 
@@ -154,11 +212,18 @@ def _buyer(move, tipo):
     if tipo in ("46", "47") and not _is_dominican(partner):
         return _foreign_buyer(move, partner, tipo)
     buyer_id = _digits(partner.vat)
-    if tipo in TYPES_WITH_BUYER_ID and len(buyer_id) not in (9, 11):
+    foreign_id = ""
+    if tipo in TYPES_WITH_FOREIGN_ID and not _is_dominican(partner):
+        foreign_id = "".join(char for char in (partner.vat or "") if char.isalnum())[:20]
+    if _buyer_id_required(move, tipo) and len(buyer_id) not in (9, 11) and not foreign_id:
         who = _("el proveedor") if tipo in PURCHASE_TYPES else _("el cliente")
+        if tipo in ("32", "33", "34"):
+            reason = _("Desde RD$250,000 la DGII pide identificar al cliente. ")
+        else:
+            reason = ""
         raise UserError(
-            _("%(doc)s: %(who)s %(name)s necesita un RNC (9 dígitos) o una cédula (11 dígitos) válidos.")
-            % {"doc": move.name, "who": who, "name": partner.name}
+            _("%(doc)s: %(reason)s%(who)s %(name)s necesita un RNC (9 dígitos) o una cédula (11 dígitos) válidos.")
+            % {"doc": move.name, "reason": reason, "who": who, "name": partner.name}
         )
     if tipo == "47":
         raise UserError(
@@ -167,12 +232,15 @@ def _buyer(move, tipo):
             % {"doc": move.name, "name": partner.name}
         )
     buyer = {}
-    if len(buyer_id) in (9, 11):
+    if len(buyer_id) in (9, 11) and not foreign_id:
         buyer["RNCComprador"] = buyer_id
+    elif foreign_id:
+        buyer["IdentificadorExtranjero"] = foreign_id
     if partner.name:
         buyer["RazonSocialComprador"] = _one_line(partner.name)[:150]
-    if partner.email:
-        buyer["CorreoComprador"] = partner.email.strip()[:80]
+    email = _email(partner.email)
+    if email:
+        buyer["CorreoComprador"] = email
     address = _one_line(" ".join(filter(None, [partner.street, partner.street2, partner.city])))
     if address:
         buyer["DireccionComprador"] = address[:100]
@@ -197,8 +265,9 @@ def _foreign_buyer(move, partner, tipo):
         buyer["IdentificadorExtranjero"] = foreign_id
     buyer["RazonSocialComprador"] = _one_line(partner.name)[:150]
     if tipo == "46":
-        if partner.email:
-            buyer["CorreoComprador"] = partner.email.strip()[:80]
+        email = _email(partner.email)
+        if email:
+            buyer["CorreoComprador"] = email
         address = _one_line(" ".join(filter(None, [partner.street, partner.street2, partner.city])))
         if address:
             buyer["DireccionComprador"] = address[:100]
@@ -226,8 +295,17 @@ def _items_and_totals(move, tipo):
     withheld = {"itbis": 0.0, "isr": 0.0}
     for number, line in enumerate(lines, start=1):
         indicator = _line_indicator(move, line, tipo, groups)
-        if float_compare(line.quantity, 0, precision_digits=4) <= 0:
-            raise UserError(_("%(doc)s: la línea «%(line)s» necesita una cantidad mayor que cero.") % {"doc": move.name, "line": line.name})
+        # The DGII takes quantities with two decimals: everything else is
+        # computed on the quantity as it is sent.
+        quantity = float_round(line.quantity, precision_digits=2)
+        if float_compare(quantity, 0, precision_digits=2) <= 0:
+            raise UserError(_("%(doc)s: la línea «%(line)s» necesita una cantidad mayor que cero (con dos decimales como mucho).") % {"doc": move.name, "line": line.name})
+        if float_compare(line.price_unit, 0, precision_digits=6) < 0 or float_compare(line.discount, 0, precision_digits=2) < 0:
+            raise UserError(
+                _("%(doc)s: la línea «%(line)s» tiene un precio o un descuento negativo. Un e-CF no admite "
+                  "líneas en negativo: aplica el descuento en la línea a la que corresponde, o emite una "
+                  "nota de crédito.") % {"doc": move.name, "line": line.name}
+            )
 
         net = currency.round(abs(line.price_subtotal))
         if tipo == "43":
@@ -241,7 +319,7 @@ def _items_and_totals(move, tipo):
         with_discount = tipo not in ("43", "47") and line.discount
         gross = currency.round(net / (1 - (line.discount or 0) / 100)) if with_discount else net
         discount = currency.round(gross - net)
-        unit_price = _unit_price(gross, line.quantity)
+        unit_price = _unit_price(gross, quantity)
 
         service = line.product_id.type == "service" or not line.product_id
         item = {
@@ -253,7 +331,7 @@ def _items_and_totals(move, tipo):
         item.update({
             **_item_names(line.name or line.product_id.display_name),
             "IndicadorBienoServicio": "2" if service or tipo == "47" else "1",
-            "CantidadItem": _number(line.quantity, 2),
+            "CantidadItem": _number(quantity, 2),
             "PrecioUnitarioItem": unit_price,
         })
         if not float_is_zero(discount, precision_digits=2):
@@ -310,15 +388,23 @@ def _items_and_totals(move, tipo):
 
 def _tax_groups(move):
     company = move.company_id
-    return {
+    groups = {
         name: move.env.ref("account.%s_tax_group_%s" % (company.id, name), raise_if_not_found=False)
         for name in ("itbis", "isr")
     }
+    if not groups["itbis"]:
+        # Without the Dominican chart of accounts every tax would look like
+        # "something other than ITBIS", with a confusing message.
+        raise UserError(
+            _("%s: no encuentro el grupo de impuestos ITBIS del plan contable dominicano. "
+              "Instala el plan contable de República Dominicana en la empresa.") % move.name
+        )
+    return groups
 
 
 def _is_withholding(tax, groups):
     """Odoo keeps withholdings as negative ITBIS or ISR taxes."""
-    return tax.amount < 0 and tax.tax_group_id in (groups["itbis"], groups["isr"])
+    return tax.amount < 0 and tax.tax_group_id in (groups["itbis"], groups["isr"]) and bool(tax.tax_group_id)
 
 
 def _line_indicator(move, line, tipo, groups):
@@ -394,7 +480,13 @@ def _withholding(move, line, tipo, groups, indicator, service, withheld):
                 key = "itbis" if tax.tax_group_id == groups["itbis"] else "isr"
                 amounts[key] += abs(result["amount"])
     amounts = {key: currency.round(value) for key, value in amounts.items()}
-    if not service and not float_is_zero(amounts["isr"], precision_digits=2):
+    if indicator == EXEMPT and not float_is_zero(amounts["itbis"], precision_digits=2):
+        raise UserError(
+            _("%(doc)s: la línea «%(line)s» retiene ITBIS pero no lleva ITBIS. Quita la retención de "
+              "ITBIS o añade el ITBIS a la línea.") % {"doc": move.name, "line": line.name}
+        )
+    # A payment abroad is always a service for the DGII.
+    if tipo == "41" and not service and not float_is_zero(amounts["isr"], precision_digits=2):
         raise UserError(
             _("%(doc)s: la línea «%(line)s» retiene ISR, y la DGII solo lo admite en servicios. "
               "Marca el producto como servicio o quita la retención de ISR.")
@@ -404,8 +496,7 @@ def _withholding(move, line, tipo, groups, indicator, service, withheld):
     withheld["isr"] += amounts["isr"]
     retention = {"IndicadorAgenteRetencionoPercepcion": "1"}
     if tipo == "41":
-        # An exempt line withholds no ITBIS, and the DGII wants it as 0.
-        retention["MontoITBISRetenido"] = _amount(amounts["itbis"] if indicator != EXEMPT else 0)
+        retention["MontoITBISRetenido"] = _amount(amounts["itbis"])
         if service:
             retention["MontoISRRetenido"] = _amount(amounts["isr"])
     else:
@@ -516,5 +607,7 @@ def _digits(text):
 
 def _one_line(text):
     """Line breaks and repeated spaces become one space: some e-CF readers
-    reject signed documents whose texts contain line breaks."""
-    return " ".join((text or "").split())
+    reject signed documents whose texts contain line breaks. Control
+    characters, which XML does not allow, go away."""
+    text = "".join(char for char in (text or "") if char.isprintable() or char.isspace())
+    return " ".join(text.split())

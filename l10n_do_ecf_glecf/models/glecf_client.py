@@ -25,6 +25,14 @@ class GlecfError(Exception):
         self.message = message
         self.status = status
 
+    @property
+    def transient(self):
+        """No answer, a server error or too many requests: worth trying again.
+
+        Any other error is GLECF saying no, and trying again changes nothing.
+        """
+        return self.status is None or self.status >= 500 or self.status == 429
+
 
 class GlecfClient:
     def __init__(self, api_key):
