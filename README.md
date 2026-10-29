@@ -6,6 +6,10 @@ en Odoo como **comprobantes fiscales electrónicos (e-CF)**, tal como exige la
 **Ley núm. 32-23 de Facturación Electrónica** y su reglamento, el **Decreto
 587-24**.
 
+> **Solo con un plan de pago de GLECF** (Licencia Anual o plan a medida). El
+> módulo se descarga gratis, pero el Plan Gratis de GLECF no incluye Odoo.
+> Planes: [glecf.com/precios](https://glecf.com/precios/).
+
 > **En mejora continua.** El módulo funciona y se sigue ampliando. El manual,
 > con capturas: [docs/manual.md](docs/manual.md).
 
@@ -61,8 +65,9 @@ aplicaciones e instala **e-CF DGII para Odoo**.
 
    ¿Aún no tienes cuenta? Pulsa *Crear una cuenta gratis en GLECF*. El registro
    se abre con el nombre, el RNC, la dirección, el teléfono y el correo de tu
-   empresa tal como están en Odoo. Confirma tu correo y vuelve a pulsar
-   *Conectar con GLECF*.
+   empresa tal como están en Odoo. Confirma tu correo, contrata la Licencia
+   Anual (el Plan Gratis no incluye Odoo) y vuelve a pulsar *Conectar con
+   GLECF*.
 2. El módulo comprueba que la cuenta de GLECF sea la del mismo RNC que tu
    empresa en Odoo: si no, no envía nada, porque la DGII lo rechazaría. Si
    prefieres, también puedes pegar a mano una clave de API creada en GLECF.

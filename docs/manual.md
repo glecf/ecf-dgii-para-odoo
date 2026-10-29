@@ -11,7 +11,8 @@ de Facturación Electrónica y el Decreto 587-24. La firma y el envío los hace
 ## Antes de empezar
 
 - Odoo 17 con la localización dominicana `l10n_do_accounting`.
-- Una cuenta de GLECF.
+- Una cuenta de GLECF con **plan de pago** (Licencia Anual o plan a medida). El
+  Plan Gratis no incluye Odoo: [glecf.com/precios](https://glecf.com/precios/).
 - El certificado digital de la empresa (.p12).
 - Odoo.sh o servidor propio. Odoo Online no admite módulos externos.
 
@@ -32,7 +33,8 @@ Ajustes te dice:
   trabajar en Pruebas y el botón **Empezar la certificación** te lleva a GLECF.
 
 ¿Aún no tienes cuenta? **Crear una cuenta gratis en GLECF** abre el registro
-con los datos de tu empresa ya puestos.
+con los datos de tu empresa ya puestos. Después contrata la Licencia Anual: el
+Plan Gratis no incluye Odoo.
 
 ## 2. Subir el certificado
 
