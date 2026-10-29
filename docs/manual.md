@@ -74,10 +74,21 @@ sigue solo.
 
 ## 5. Facturar
 
-Acepta el envío de tus datos a GLECF y publica tus facturas como siempre. Cada
-e-CF se firma, se envía a la DGII y la respuesta vuelve a la factura.
+Antes de la primera factura, marca **Datos que se envían a GLECF** en Ajustes.
 
-![Factura aceptada por la DGII](img/06-factura-enviada.png)
+1. En *Facturación > Clientes > Facturas*, pulsa **Nuevo** y elige el cliente.
+   Odoo propone el tipo: **Crédito Fiscal** si el cliente tiene RNC, **Consumo**
+   si no.
+2. La primera factura de cada tipo pide el **Número de Documento** (el primer
+   e-NCF, por ejemplo E310000000001). Después Odoo sigue solo.
+3. Añade las líneas con su **ITBIS** y pulsa **Confirmar**.
+
+![Factura nueva, en borrador](img/10-factura-nueva.png)
+
+En unos segundos sale a la DGII y la respuesta vuelve a la factura. Para ver el
+estado nuevo, recarga la página.
+
+![Factura aceptada por la DGII](img/11-factura-aceptada.png)
 
 | Estado | Qué significa |
 |---|---|
@@ -85,13 +96,21 @@ e-CF se firma, se envía a la DGII y la respuesta vuelve a la factura.
 | Esperando a la DGII | Enviado; falta la respuesta |
 | Aceptado | Listo |
 | Aceptado con observaciones | Válido; lee el mensaje |
-| Rechazado | Corrígela y publícala otra vez |
+| Rechazado | Si sale **Corregir la factura**, púlsalo, corrige y confírmala otra vez: va con el mismo e-NCF. Si no, el número ya se usó: cancélala y créala de nuevo |
 | No enviado | Falta un dato: el mensaje dice cuál |
 | Requiere revisión | Lee el mensaje. Si sale **Reintentar envío**, no llegó a la DGII: arregla lo que dice y púlsalo. Si no, escribe a soporte@glecf.com |
 
 Si la DGII dice que el certificado **no está delegado**, el administrador de
 e-CF de la empresa tiene que darle el rol de Firmante a la persona del
 certificado, en la Oficina Virtual (Delegación de e-CF > Delegación de Roles).
+
+**Notas de crédito.** Desde la factura, pulsa **Nota de crédito**, escribe el
+motivo y elige el **Código Modificación e-CF**. Si eliges *Porcentaje* o
+*Importe*, Odoo crea una línea **sin ITBIS**: añádele el impuesto antes de
+confirmar, o el ITBIS de la factura no se devuelve.
+
+**En el ambiente de Pruebas** la DGII da a todas las secuencias el vencimiento
+31-12-2028; el módulo lo pone solo.
 
 Los diez tipos: E31, E32, E33, E34, E44, E45 y E46 desde las facturas de
 cliente; E41, E43 y E47 desde las facturas de proveedor.

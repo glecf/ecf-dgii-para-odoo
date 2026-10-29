@@ -346,7 +346,8 @@ class ResCompany(models.Model):
         if self.glecf_certificate_name:
             message = _("La clave de API funciona. Certificado de %(name)s, válido hasta %(date)s.") % {
                 "name": self.glecf_certificate_name,
-                "date": self.glecf_certificate_valid_until or "-",
+                "date": self.glecf_certificate_valid_until.strftime("%d/%m/%Y")
+                if self.glecf_certificate_valid_until else "-",
             }
         else:
             message = _("La clave de API funciona. Ahora sube tu certificado digital.")
