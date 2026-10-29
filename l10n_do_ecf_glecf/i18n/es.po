@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0-20260908\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 23:55+0000\n"
-"PO-Revision-Date: 2026-10-28 23:55+0000\n"
+"POT-Creation-Date: 2026-10-29 00:29+0000\n"
+"PO-Revision-Date: 2026-10-29 00:29+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -152,6 +152,11 @@ msgstr ""
 
 #. module: l10n_do_ecf_glecf
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
+msgid "<span class=\"text-muted\"> · valid until </span>"
+msgstr "<span class=\"text-muted\"> · válido hasta </span>"
+
+#. module: l10n_do_ecf_glecf
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
 msgid "API key"
 msgstr "Clave de API"
 
@@ -164,6 +169,45 @@ msgstr "Aceptado"
 #: model:ir.model.fields.selection,name:l10n_do_ecf_glecf.selection__account_move__glecf_state__conditional
 msgid "Accepted with observations"
 msgstr "Aceptado con observaciones"
+
+#. module: l10n_do_ecf_glecf
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.glecf_certificate_wizard_form
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_glecf_certificate_wizard__certificate_file
+msgid "Certificate (.p12)"
+msgstr "Certificado (.p12)"
+
+#. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_glecf_certificate_wizard__certificate_filename
+msgid "Certificate Filename"
+msgstr "Nombre del archivo"
+
+#. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_res_company__glecf_certificate_name
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_res_config_settings__glecf_certificate_name
+msgid "Certificate holder"
+msgstr "Titular del certificado"
+
+#. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_glecf_certificate_wizard__certificate_password
+msgid "Certificate password"
+msgstr "Contraseña del certificado"
+
+#. module: l10n_do_ecf_glecf
+#. odoo-python
+#: code:addons/l10n_do_ecf_glecf/models/glecf_certificate_wizard.py:0
+#, python-format
+msgid "Certificate uploaded to GLECF"
+msgstr "Certificado subido a GLECF"
+
+#. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_res_company__glecf_certificate_valid_until
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_res_config_settings__glecf_certificate_valid_until
+msgid "Certificate valid until"
+msgstr "Certificado válido hasta"
 
 #. module: l10n_do_ecf_glecf
 #: model:ir.model.fields.selection,name:l10n_do_ecf_glecf.selection__res_company__l10n_do_ecf_service_env__certecf
@@ -181,9 +225,21 @@ msgid "Check connection"
 msgstr "Comprobar conexión"
 
 #. module: l10n_do_ecf_glecf
+#. odoo-python
+#: code:addons/l10n_do_ecf_glecf/models/glecf_certificate_wizard.py:0
+#, python-format
+msgid "Choose the certificate file (.p12 or .pfx)."
+msgstr "Elige el archivo del certificado (.p12 o .pfx)."
+
+#. module: l10n_do_ecf_glecf
 #: model:ir.model,name:l10n_do_ecf_glecf.model_res_company
 msgid "Companies"
 msgstr "Empresas"
+
+#. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_glecf_certificate_wizard__company_id
+msgid "Company"
+msgstr "Empresa"
 
 #. module: l10n_do_ecf_glecf
 #: model:ir.model,name:l10n_do_ecf_glecf.model_res_config_settings
@@ -218,6 +274,16 @@ msgid "Create a free GLECF account"
 msgstr "Crear una cuenta gratis en GLECF"
 
 #. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_glecf_certificate_wizard__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_glecf_certificate_wizard__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: l10n_do_ecf_glecf
 #: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_res_company__l10n_do_ecf_service_env
 #: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_res_config_settings__l10n_do_ecf_service_env
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
@@ -228,6 +294,16 @@ msgstr "Ambiente de la DGII"
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
 msgid "Data sent to GLECF"
 msgstr "Datos que se envían a GLECF"
+
+#. module: l10n_do_ecf_glecf
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
+msgid "Digital certificate"
+msgstr "Certificado digital"
+
+#. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_glecf_certificate_wizard__display_name
+msgid "Display Name"
+msgstr "Nombre mostrado"
 
 #. module: l10n_do_ecf_glecf
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
@@ -261,6 +337,15 @@ msgstr "Conexión con GLECF"
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
+#: code:addons/l10n_do_ecf_glecf/models/glecf_certificate_wizard.py:0
+#, python-format
+msgid ""
+"GLECF could not open the certificate: the password is wrong or the file is "
+"damaged."
+msgstr "GLECF no pudo abrir el certificado: la contraseña no es correcta o el archivo está dañado."
+
+#. module: l10n_do_ecf_glecf
+#. odoo-python
 #: code:addons/l10n_do_ecf_glecf/models/glecf_client.py:0
 #, python-format
 msgid "GLECF did not accept the API key. Check it in Settings."
@@ -276,6 +361,13 @@ msgstr "Documento en GLECF"
 #. module: l10n_do_ecf_glecf
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
 msgid ""
+"GLECF signs your e-CF with it. The file and its password are kept by GLECF, "
+"not by Odoo."
+msgstr "GLECF firma tus e-CF con él. El archivo y su contraseña los guarda GLECF, no Odoo."
+
+#. module: l10n_do_ecf_glecf
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
+msgid ""
 "GLECF signs your e-CF with your certificate and sends them to the DGII."
 msgstr "GLECF firma tus e-CF con tu certificado y los envía a la DGII."
 
@@ -285,14 +377,41 @@ msgid "Get your API key"
 msgstr "Obtener tu clave de API"
 
 #. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_glecf_certificate_wizard__id
+msgid "ID"
+msgstr ""
+
+#. module: l10n_do_ecf_glecf
 #: model:ir.model,name:l10n_do_ecf_glecf.model_account_move
 msgid "Journal Entry"
 msgstr "Asiento contable"
 
 #. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_glecf_certificate_wizard__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: l10n_do_ecf_glecf
+#: model:ir.model.fields,field_description:l10n_do_ecf_glecf.field_glecf_certificate_wizard__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: l10n_do_ecf_glecf
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
+msgid "No certificate yet."
+msgstr "Todavía no hay certificado."
+
+#. module: l10n_do_ecf_glecf
 #: model:ir.model.fields.selection,name:l10n_do_ecf_glecf.selection__account_move__glecf_state__error
 msgid "Not sent"
 msgstr "No enviado"
+
+#. module: l10n_do_ecf_glecf
+#. odoo-python
+#: code:addons/l10n_do_ecf_glecf/models/glecf_certificate_wizard.py:0
+#, python-format
+msgid "Paste your GLECF API key first, then upload the certificate."
+msgstr "Pega primero tu clave de API de GLECF y después sube el certificado."
 
 #. module: l10n_do_ecf_glecf
 #: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
@@ -380,8 +499,15 @@ msgstr "Pruebas"
 #. odoo-python
 #: code:addons/l10n_do_ecf_glecf/models/res_company.py:0
 #, python-format
-msgid "The API key works."
-msgstr "La clave de API funciona."
+msgid "The API key works. Certificate of %(name)s, valid until %(date)s."
+msgstr "La clave de API funciona. Certificado de %(name)s, válido hasta %(date)s."
+
+#. module: l10n_do_ecf_glecf
+#. odoo-python
+#: code:addons/l10n_do_ecf_glecf/models/res_company.py:0
+#, python-format
+msgid "The API key works. Now upload your digital certificate."
+msgstr "La clave de API funciona. Ahora sube tu certificado digital."
 
 #. module: l10n_do_ecf_glecf
 #. odoo-python
@@ -405,6 +531,20 @@ msgid "The DGII rejected the e-CF: %s"
 msgstr "La DGII rechazó el e-CF: %s"
 
 #. module: l10n_do_ecf_glecf
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.glecf_certificate_wizard_form
+msgid ""
+"The certificate goes straight to GLECF, which keeps it encrypted and signs your e-CF with it.\n"
+"                    Odoo does not keep the file or the password."
+msgstr "El certificado va directo a GLECF, que lo guarda cifrado y firma con él tus e-CF. Odoo no guarda ni el archivo ni la contraseña."
+
+#. module: l10n_do_ecf_glecf
+#. odoo-python
+#: code:addons/l10n_do_ecf_glecf/models/glecf_certificate_wizard.py:0
+#, python-format
+msgid "The certificate must be a .p12 or .pfx file."
+msgstr "El certificado debe ser un archivo .p12 o .pfx."
+
+#. module: l10n_do_ecf_glecf
 #. odoo-python
 #: code:addons/l10n_do_ecf_glecf/models/account_move.py:0
 #, python-format
@@ -415,6 +555,30 @@ msgstr "El e-CF no se envió: %s"
 #: model:ir.model.fields.selection,name:l10n_do_ecf_glecf.selection__account_move__glecf_state__to_send
 msgid "To send"
 msgstr "Por enviar"
+
+#. module: l10n_do_ecf_glecf
+#: model:ir.actions.act_window,name:l10n_do_ecf_glecf.action_glecf_certificate_wizard
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.glecf_certificate_wizard_form
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.res_config_settings_view_form_glecf
+msgid "Upload certificate"
+msgstr "Subir certificado"
+
+#. module: l10n_do_ecf_glecf
+#: model:ir.model,name:l10n_do_ecf_glecf.model_glecf_certificate_wizard
+msgid "Upload the digital certificate to GLECF"
+msgstr "Subir el certificado digital a GLECF"
+
+#. module: l10n_do_ecf_glecf
+#: model_terms:ir.ui.view,arch_db:l10n_do_ecf_glecf.glecf_certificate_wizard_form
+msgid "Upload to GLECF"
+msgstr "Subir a GLECF"
+
+#. module: l10n_do_ecf_glecf
+#. odoo-python
+#: code:addons/l10n_do_ecf_glecf/models/glecf_certificate_wizard.py:0
+#, python-format
+msgid "Valid until %s. Your e-CF will be signed with it."
+msgstr "Válido hasta %s. Tus e-CF se firmarán con él."
 
 #. module: l10n_do_ecf_glecf
 #: model:ir.model.fields.selection,name:l10n_do_ecf_glecf.selection__account_move__glecf_state__sent
