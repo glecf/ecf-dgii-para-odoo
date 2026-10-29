@@ -1,7 +1,7 @@
 import base64
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import quote
 
 import pytz
@@ -114,7 +114,7 @@ class AccountMove(models.Model):
             # back, the DGII would have a document Odoo does not. The job
             # runs right after the commit.
             if any(to_send.company_id.mapped("glecf_auto_send")):
-                self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync")._trigger()
+                self._glecf_trigger_sync()
         return posted
 
     def button_draft(self):
@@ -144,7 +144,7 @@ class AccountMove(models.Model):
             company._glecf_check_ready()
         moves.write({"glecf_state": "to_send", "glecf_requested": True, "glecf_message": False})
         if moves:
-            self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync")._trigger()
+            self._glecf_trigger_sync()
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
@@ -164,7 +164,7 @@ class AccountMove(models.Model):
                 "glecf_state": "to_send", "glecf_requested": True, "glecf_message": False,
                 "glecf_retryable": False,
             })
-        self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync")._trigger()
+        self._glecf_trigger_sync()
         return True
 
     def action_glecf_refresh(self):
@@ -199,6 +199,11 @@ class AccountMove(models.Model):
             "ecf_data": ecf_data,
         }
         self.write({"glecf_attempted": True})
+        # Kept before calling GLECF: if this write clashes with someone saving
+        # the invoice, it fails here, before anything is sent. Seen on
+        # 2026-10-29: the send ran while the posting was still being saved,
+        # GLECF got the e-CF and the invoice stayed «to send», unlocked.
+        self.env.cr.commit()
         try:
             answer = self.company_id._glecf_client().submit(payload)
         except GlecfError as error:
@@ -364,6 +369,13 @@ class AccountMove(models.Model):
 
     # -- Background job -------------------------------------------------------
 
+    def _glecf_trigger_sync(self):
+        """Run the job in a few seconds, once the request that asked has been
+        saved: running it at once raced with saving the invoice (2026-10-29)."""
+        self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync")._trigger(
+            at=fields.Datetime.now() + timedelta(seconds=10)
+        )
+
     @api.model
     def _cron_glecf_sync(self, batch=50):
         """Send what is waiting and read the answers of what was sent.
@@ -383,8 +395,17 @@ class AccountMove(models.Model):
         waiting = moves.search(
             [("glecf_state", "=", "sent")], order="glecf_last_check asc nulls first, id", limit=batch * 2
         )
-        for move, step in [(m, "_glecf_send") for m in pending] + [(m, "_glecf_refresh") for m in waiting]:
+        for move, step, wanted in (
+            [(m, "_glecf_send", "to_send") for m in pending]
+            + [(m, "_glecf_refresh", "sent") for m in waiting]
+        ):
             try:
+                # A fresh look at the invoice: it may have changed since the
+                # search (just posted, sent by another worker, back to draft).
+                self.env.cr.commit()
+                move.invalidate_recordset()
+                if move.glecf_state != wanted:
+                    continue
                 getattr(move.with_company(move.company_id), step)()
                 self.env.cr.commit()
             except Exception:
