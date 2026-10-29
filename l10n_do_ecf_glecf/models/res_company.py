@@ -145,18 +145,16 @@ class ResCompany(models.Model):
             "empresa": self.name or "",
             "rnc": self._glecf_odoo_rnc(),
         }
-        connect_url = params.get_param("glecf.connect_url") or CONNECT_URL
         return {
             "type": "ir.actions.act_url",
-            "url": "%s?%s" % (connect_url, urlencode({k: v for k, v in query.items() if v})),
+            "url": "%s?%s" % (CONNECT_URL, urlencode({k: v for k, v in query.items() if v})),
             "target": "self",
         }
 
     def _glecf_finish_connection(self, code, pending):
         """Trade the code for the API key and keep it. Raises GlecfError."""
         self.ensure_one()
-        api_url = self.env["ir.config_parameter"].sudo().get_param("glecf.api_url")
-        answer = GlecfClient(None, api_url or None).exchange(
+        answer = GlecfClient(None).exchange(
             code, pending["verifier"], pending["redirect_uri"]
         )
         self.sudo().write({"glecf_api_key": answer["api_key"]})
@@ -216,8 +214,7 @@ class ResCompany(models.Model):
 
     def _glecf_client(self):
         self.ensure_one()
-        api_url = self.env["ir.config_parameter"].sudo().get_param("glecf.api_url")
-        return GlecfClient(self.sudo().glecf_api_key, api_url or None)
+        return GlecfClient(self.sudo().glecf_api_key)
 
     def _glecf_check_ready(self):
         """Raise a clear error if this company cannot send e-CF yet."""

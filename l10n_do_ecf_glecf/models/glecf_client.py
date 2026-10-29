@@ -13,7 +13,9 @@ from odoo import _, release
 
 _logger = logging.getLogger(__name__)
 
-DEFAULT_API_URL = "https://api.glecf.com/api/v1"
+# The module only talks to GLECF: the address is fixed, with no setting to
+# point it anywhere else.
+API_URL = "https://api.glecf.com/api/v1"
 TIMEOUT = 30
 
 
@@ -25,9 +27,8 @@ class GlecfError(Exception):
 
 
 class GlecfClient:
-    def __init__(self, api_key, base_url=None):
+    def __init__(self, api_key):
         self.api_key = (api_key or "").strip()
-        self.base_url = (base_url or DEFAULT_API_URL).rstrip("/")
 
     def _request(self, method, path, **kwargs):
         headers = {
@@ -39,7 +40,7 @@ class GlecfClient:
         try:
             response = requests.request(
                 method,
-                self.base_url + path,
+                API_URL + path,
                 headers=headers,
                 timeout=TIMEOUT,
                 **kwargs,
