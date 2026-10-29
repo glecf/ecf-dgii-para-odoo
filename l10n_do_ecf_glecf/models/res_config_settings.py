@@ -19,6 +19,8 @@ class ResConfigSettings(models.TransientModel):
     l10n_do_ecf_service_env = fields.Selection(
         related="company_id.l10n_do_ecf_service_env",
     )
+    glecf_certificate_name = fields.Char(related="company_id.glecf_certificate_name")
+    glecf_certificate_valid_until = fields.Date(related="company_id.glecf_certificate_valid_until")
 
     def action_glecf_check_connection(self):
         self.ensure_one()

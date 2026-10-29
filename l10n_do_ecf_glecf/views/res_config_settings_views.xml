@@ -27,6 +27,20 @@
                                 icon="oi-arrow-right"
                                 invisible="not glecf_api_key"/>
                     </setting>
+                    <setting id="glecf_certificate" string="Digital certificate"
+                             help="GLECF signs your e-CF with it. The file and its password are kept by GLECF, not by Odoo."
+                             invisible="not glecf_api_key">
+                        <div class="mt8" invisible="not glecf_certificate_name">
+                            <field name="glecf_certificate_name" class="fw-bold"/>
+                            <span class="text-muted"> · valid until </span>
+                            <field name="glecf_certificate_valid_until"/>
+                        </div>
+                        <div class="mt8 text-muted" invisible="glecf_certificate_name">
+                            No certificate yet.
+                        </div>
+                        <button name="%(l10n_do_ecf_glecf.action_glecf_certificate_wizard)d" type="action"
+                                string="Upload certificate" class="btn-link ps-0" icon="oi-arrow-right"/>
+                    </setting>
                     <setting id="glecf_consent" string="Data sent to GLECF"
                              help="When an e-CF is sent, its number, dates, amounts, lines and the data of your company and customer go to GLECF, which keeps them to deliver them to the DGII.">
                         <field name="glecf_consent"/>

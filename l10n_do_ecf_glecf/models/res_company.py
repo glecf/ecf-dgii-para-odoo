@@ -46,6 +46,25 @@ class ResCompany(models.Model):
         "It is updated with every invoice GLECF processes.",
     )
 
+    # Only what helps to recognise the certificate. The certificate itself and
+    # its password are kept by GLECF, never in Odoo.
+    glecf_certificate_name = fields.Char(string="Certificate holder", readonly=True, copy=False)
+    glecf_certificate_valid_until = fields.Date(string="Certificate valid until", readonly=True, copy=False)
+
+    def _glecf_store_certificate(self, certificate):
+        """Remember who the certificate in use belongs to and its expiry."""
+        self.ensure_one()
+        valid_until = (certificate or {}).get("valid_until")
+        self.write({
+            "glecf_certificate_name": _certificate_holder((certificate or {}).get("subject")),
+            "glecf_certificate_valid_until": valid_until[:10] if valid_until else False,
+        })
+
+    def _glecf_refresh_certificate(self):
+        certificates = self._glecf_client().list_certificates()
+        in_use = [c for c in certificates if c.get("is_default") and c.get("is_active")]
+        self.sudo()._glecf_store_certificate(in_use[0] if in_use else None)
+
     def _glecf_client(self):
         self.ensure_one()
         api_url = self.env["ir.config_parameter"].sudo().get_param("glecf.api_url")
@@ -72,15 +91,35 @@ class ResCompany(models.Model):
         self.ensure_one()
         try:
             self._glecf_client().check()
+            self._glecf_refresh_certificate()
         except GlecfError as error:
             raise UserError(error.message) from error
+        if self.glecf_certificate_name:
+            message = _("The API key works. Certificate of %(name)s, valid until %(date)s.") % {
+                "name": self.glecf_certificate_name,
+                "date": self.glecf_certificate_valid_until or "-",
+            }
+        else:
+            message = _("The API key works. Now upload your digital certificate.")
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "type": "success",
                 "title": _("Connected to GLECF"),
-                "message": _("The API key works."),
+                "message": message,
                 "sticky": False,
+                "next": {"type": "ir.actions.client", "tag": "soft_reload"},
             },
         }
+
+
+def _certificate_holder(subject):
+    """'CN=JUAN PEREZ,SERIALNUMBER=...' -> 'JUAN PEREZ'."""
+    if not subject:
+        return False
+    for part in subject.split(","):
+        key, _sep, value = part.partition("=")
+        if key.strip().upper() == "CN" and value.strip():
+            return value.strip()[:120]
+    return subject[:120]

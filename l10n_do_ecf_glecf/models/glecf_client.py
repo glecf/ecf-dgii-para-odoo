@@ -74,6 +74,20 @@ class GlecfClient:
     def get_document(self, document_id):
         return self._request("GET", "/documents/%s" % document_id)
 
+    def list_certificates(self):
+        return self._request("GET", "/certificates").get("items", [])
+
+    def upload_certificate(self, filename, content, password):
+        return self._request(
+            "POST",
+            "/certificates",
+            files={"file": (filename, content, "application/x-pkcs12")},
+            data={"password": password or ""},
+        )
+
+    def set_default_certificate(self, certificate_id):
+        return self._request("POST", "/certificates/%s/set-default" % certificate_id)
+
 
 def _detail(data):
     """The human message of an error answer, whatever its shape."""
