@@ -17,27 +17,27 @@ class GlecfCertificateWizard(models.TransientModel):
     """
 
     _name = "glecf.certificate.wizard"
-    _description = "Upload the digital certificate to GLECF"
+    _description = "Subir el certificado digital a GLECF"
 
     company_id = fields.Many2one(
         "res.company",
         required=True,
         default=lambda self: self.env.company,
     )
-    certificate_file = fields.Binary(string="Certificate (.p12)", attachment=False)
+    certificate_file = fields.Binary(string="Certificado (.p12)", attachment=False)
     certificate_filename = fields.Char()
-    certificate_password = fields.Char(string="Certificate password")
+    certificate_password = fields.Char(string="Contraseña del certificado")
 
     def action_upload(self):
         self.ensure_one()
         company = self.company_id
         if not company.sudo().glecf_api_key:
-            raise UserError(_("Paste your GLECF API key first, then upload the certificate."))
+            raise UserError(_("Pega primero tu clave de API de GLECF y después sube el certificado."))
         if not self.certificate_file:
-            raise UserError(_("Choose the certificate file (.p12 or .pfx)."))
+            raise UserError(_("Elige el archivo del certificado (.p12 o .pfx)."))
         filename = self.certificate_filename or "certificate.p12"
         if not filename.lower().endswith(ALLOWED_EXTENSIONS):
-            raise UserError(_("The certificate must be a .p12 or .pfx file."))
+            raise UserError(_("El certificado debe ser un archivo .p12 o .pfx."))
 
         content = base64.b64decode(self.certificate_file)
         password = self.certificate_password or ""
@@ -51,7 +51,7 @@ class GlecfCertificateWizard(models.TransientModel):
         except GlecfError as error:
             if "password" in error.message.lower() or "corrupt" in error.message.lower():
                 raise UserError(
-                    _("GLECF could not open the certificate: the password is wrong or the file is damaged.")
+                    _("GLECF no pudo abrir el certificado: la contraseña no es correcta o el archivo está dañado.")
                 ) from error
             raise UserError(error.message) from error
 
@@ -61,8 +61,8 @@ class GlecfCertificateWizard(models.TransientModel):
             "tag": "display_notification",
             "params": {
                 "type": "success",
-                "title": _("Certificate uploaded to GLECF"),
-                "message": _("Valid until %s. Your e-CF will be signed with it.")
+                "title": _("Certificado subido a GLECF"),
+                "message": _("Válido hasta %s. Tus e-CF se firmarán con él.")
                 % (company.glecf_certificate_valid_until or "-"),
                 "sticky": False,
                 "next": {"type": "ir.actions.client", "tag": "soft_reload"},

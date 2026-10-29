@@ -6,20 +6,20 @@
         <field name="inherit_id" ref="account.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//block[@id='invoicing_settings']" position="before">
-                <block title="Electronic invoicing (e-CF)" id="glecf_settings">
-                    <setting id="glecf_connection" string="GLECF connection"
-                             help="GLECF signs your e-CF with your certificate and sends them to the DGII.">
+                <block title="Facturación electrónica (e-CF)" id="glecf_settings">
+                    <setting id="glecf_connection" string="Conexión con GLECF"
+                             help="GLECF firma tus e-CF con tu certificado y los envía a la DGII.">
                         <div class="mt8" invisible="glecf_api_key">
                             <button name="action_glecf_connect" type="object"
-                                    string="Connect to GLECF" class="btn-primary"/>
+                                    string="Conectar con GLECF" class="btn-primary"/>
                             <div class="mt8 text-muted">
-                                No account yet?
+                                ¿Aún no tienes cuenta?
                                 <button name="action_glecf_create_account" type="object"
-                                        string="Create a free GLECF account" class="btn-link p-0 align-baseline"/>
+                                        string="Crear una cuenta gratis en GLECF" class="btn-link p-0 align-baseline"/>
                             </div>
                         </div>
                         <div class="row" invisible="not glecf_account_name">
-                            <label for="glecf_account_name" string="GLECF account" class="col-lg-3 o_light_label"/>
+                            <label for="glecf_account_name" string="Cuenta de GLECF" class="col-lg-3 o_light_label"/>
                             <div class="col">
                                 <field name="glecf_account_name" class="oe_inline"/>
                                 <span class="text-muted"> · RNC </span>
@@ -27,61 +27,61 @@
                             </div>
                         </div>
                         <div class="row">
-                            <label for="l10n_do_ecf_service_env" string="DGII environment" class="col-lg-3 o_light_label"/>
+                            <label for="l10n_do_ecf_service_env" string="Ambiente de la DGII" class="col-lg-3 o_light_label"/>
                             <field name="l10n_do_ecf_service_env"/>
                         </div>
                         <div invisible="not glecf_api_key">
                             <button name="action_glecf_check_connection" type="object"
-                                    string="Check connection" class="btn-link ps-0"
+                                    string="Comprobar conexión" class="btn-link ps-0"
                                     icon="oi-arrow-right"/>
                             <button name="action_glecf_connect" type="object"
-                                    string="Connect again" class="btn-link"/>
+                                    string="Volver a conectar" class="btn-link"/>
                         </div>
                         <div class="row mt16">
-                            <label for="glecf_api_key" string="API key" class="col-lg-3 o_light_label"/>
+                            <label for="glecf_api_key" string="Clave de API" class="col-lg-3 o_light_label"/>
                             <div class="col">
                                 <field name="glecf_api_key" password="True" placeholder="glecf_..."/>
                                 <div class="text-muted small" invisible="glecf_api_key">
-                                    Or paste one by hand:
-                                    <a href="https://app.glecf.com/ecf/api-keys" target="_blank">Get your API key</a>
+                                    O pégala a mano:
+                                    <a href="https://app.glecf.com/ecf/api-keys" target="_blank">Obtener tu clave de API</a>
                                 </div>
                             </div>
                         </div>
                     </setting>
-                    <setting id="glecf_certificate" string="Digital certificate"
-                             help="GLECF signs your e-CF with it. The file and its password are kept by GLECF, not by Odoo."
+                    <setting id="glecf_certificate" string="Certificado digital"
+                             help="GLECF firma tus e-CF con él. El archivo y su contraseña los guarda GLECF, no Odoo."
                              invisible="not glecf_api_key">
                         <div class="mt8" invisible="not glecf_certificate_name">
                             <field name="glecf_certificate_name" class="fw-bold"/>
-                            <span class="text-muted"> · valid until </span>
+                            <span class="text-muted"> · válido hasta </span>
                             <field name="glecf_certificate_valid_until"/>
                         </div>
                         <div class="mt8 text-muted" invisible="glecf_certificate_name">
-                            No certificate yet.
+                            Todavía no hay certificado.
                         </div>
                         <button name="%(l10n_do_ecf_glecf.action_glecf_certificate_wizard)d" type="action"
-                                string="Upload certificate" class="btn-link ps-0" icon="oi-arrow-right"/>
+                                string="Subir certificado" class="btn-link ps-0" icon="oi-arrow-right"/>
                     </setting>
-                    <setting id="glecf_sequences" string="e-NCF sequences"
-                             help="Each e-CF type uses the sequence the DGII authorized. Here goes its expiry date; the first number is typed on the first invoice of each type, and Odoo continues from it.">
+                    <setting id="glecf_sequences" string="Secuencias e-NCF"
+                             help="Cada tipo de e-CF usa la secuencia que autorizó la DGII. Aquí va su fecha de vencimiento; el primer número se escribe en la primera factura de cada tipo y Odoo sigue desde ahí.">
                         <div class="mt8 text-warning" invisible="not glecf_sequences_to_check">
                             <field name="glecf_sequences_to_check" class="oe_inline"/>
-                            sequences still have the expiry date Odoo set by itself. Check it against your DGII authorization.
+                            secuencias tienen todavía la fecha de vencimiento que puso Odoo. Compruébala con tu autorización de la DGII.
                         </div>
                         <button name="action_glecf_sequences" type="object"
-                                string="Set up e-NCF sequences" class="btn-link ps-0" icon="oi-arrow-right"/>
+                                string="Configurar las secuencias e-NCF" class="btn-link ps-0" icon="oi-arrow-right"/>
                     </setting>
-                    <setting id="glecf_consent" string="Data sent to GLECF"
-                             help="When an e-CF is sent, its number, dates, amounts, lines and the data of your company and customer go to GLECF, which keeps them to deliver them to the DGII.">
+                    <setting id="glecf_consent" string="Datos que se envían a GLECF"
+                             help="Al enviar un e-CF, su número, fechas, importes, líneas y los datos de tu empresa y de tu cliente van a GLECF, que los guarda para entregarlos a la DGII.">
                         <field name="glecf_consent"/>
                         <div class="mt8">
-                            <a href="https://glecf.com/legal#privacidad" target="_blank">Privacy policy</a>
+                            <a href="https://glecf.com/legal#privacidad" target="_blank">Política de privacidad</a>
                             <span class="text-muted"> · </span>
-                            <a href="https://glecf.com/legal#terminos" target="_blank">Terms of service</a>
+                            <a href="https://glecf.com/legal#terminos" target="_blank">Términos del servicio</a>
                         </div>
                     </setting>
-                    <setting id="glecf_auto_send" string="Send when posting"
-                             help="Each e-CF is sent a moment after it is posted. Otherwise, use Send to DGII on the invoice.">
+                    <setting id="glecf_auto_send" string="Enviar al publicar"
+                             help="Cada e-CF se envía un momento después de publicarlo. Si no, usa «Enviar a la DGII» en la factura.">
                         <field name="glecf_auto_send"/>
                     </setting>
                 </block>

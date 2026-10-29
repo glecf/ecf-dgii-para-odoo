@@ -46,7 +46,7 @@ class GlecfClient:
             )
         except requests.RequestException as error:
             _logger.warning("GLECF unreachable: %s", error)
-            raise GlecfError(_("Could not reach GLECF. Try again in a few minutes.")) from error
+            raise GlecfError(_("No se pudo contactar con GLECF. Inténtalo de nuevo en unos minutos.")) from error
 
         try:
             data = response.json()
@@ -55,12 +55,12 @@ class GlecfClient:
 
         if response.status_code in (401, 403) and not _detail(data):
             raise GlecfError(
-                _("GLECF did not accept the API key. Check it in Settings."),
+                _("GLECF no aceptó la clave de API. Revísala en Ajustes."),
                 response.status_code,
             )
         if response.status_code >= 400:
             raise GlecfError(
-                _("GLECF answered: %s") % (_detail(data) or response.reason),
+                _("GLECF respondió: %s") % (_detail(data) or response.reason),
                 response.status_code,
             )
         return data

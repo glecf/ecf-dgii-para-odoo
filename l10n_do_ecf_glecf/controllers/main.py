@@ -16,17 +16,17 @@ class GlecfConnect(http.Controller):
         """Where GLECF sends the person back after «Authorize» or «Cancel»."""
         env = request.env
         if not env.user.has_group("base.group_system"):
-            return self._page(_("Only an administrator can connect Odoo to GLECF."))
+            return self._page(_("Solo un administrador puede conectar Odoo con GLECF."))
 
         pending = take_pending_connection(env, state)
         if not pending or pending.get("uid") != env.uid:
-            return self._page(_("This connection link has expired. Press «Connect to GLECF» again."))
+            return self._page(_("Este enlace de conexión caducó. Pulsa «Conectar con GLECF» otra vez."))
         if error or not code:
-            return self._page(_("The connection was cancelled. Nothing was changed."))
+            return self._page(_("Se canceló la conexión. No se cambió nada."))
 
         company = env["res.company"].browse(pending["company_id"]).exists()
         if not company or company not in env.user.company_ids:
-            return self._page(_("This connection link has expired. Press «Connect to GLECF» again."))
+            return self._page(_("Este enlace de conexión caducó. Pulsa «Conectar con GLECF» otra vez."))
         try:
             company._glecf_finish_connection(code, pending)
         except GlecfError as failure:
@@ -41,5 +41,5 @@ class GlecfConnect(http.Controller):
             "<body style='font-family:system-ui,sans-serif;max-width:32rem;margin:4rem auto;"
             "padding:0 1rem;color:#111827;line-height:1.6'>"
             "<p>%s</p><p><a href='%s' style='color:#2563eb'>%s</a></p></body></html>"
-        ) % (escape(message), SETTINGS_URL, escape(_("Back to Settings")))
+        ) % (escape(message), SETTINGS_URL, escape(_("Volver a Ajustes")))
         return request.make_response(html, headers=[("Content-Type", "text/html; charset=utf-8")])

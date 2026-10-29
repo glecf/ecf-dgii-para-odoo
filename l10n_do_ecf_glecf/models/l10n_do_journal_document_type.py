@@ -19,11 +19,11 @@ class AccountJournalDocumentType(models.Model):
     _inherit = "l10n_do.account.journal.document_type"
 
     glecf_expiry_confirmed = fields.Boolean(
-        string="Checked",
-        help="The expiry date was checked against the sequence the DGII authorized.",
+        string="Revisada",
+        help="La fecha de vencimiento se comprobó con la secuencia que autorizó la DGII.",
     )
     glecf_expiry_unchecked = fields.Boolean(compute="_compute_glecf_expiry_unchecked")
-    glecf_last_number = fields.Char(string="Last e-NCF used", compute="_compute_glecf_last_number")
+    glecf_last_number = fields.Char(string="Último e-NCF usado", compute="_compute_glecf_last_number")
 
     @api.model
     def _glecf_issued_domain(self, companies):

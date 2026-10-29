@@ -1,13 +1,15 @@
 {
     "name": "e-CF DGII para Odoo",
-    "summary": "Send your invoices to the DGII as electronic fiscal "
-    "receipts (e-CF). Requires a GLECF account.",
+    "summary": "Facturación electrónica e-CF para República Dominicana: envía tus "
+    "facturas de Odoo a la DGII según la Ley 32-23. Requiere una cuenta de GLECF.",
     "description": """
-Electronic invoicing (e-CF) for the Dominican Republic.
+Facturación electrónica (e-CF) para República Dominicana.
 
-This module sends the invoices you post in Odoo to the DGII through the GLECF
-service (https://glecf.com), which signs them with your digital certificate.
-Your invoice data leaves Odoo only after you accept it in Settings.
+Este módulo envía a la DGII, como comprobantes fiscales electrónicos (e-CF), las
+facturas que publicas en Odoo, según la Ley núm. 32-23 de Facturación
+Electrónica y el Decreto 587-24. Los firma y los envía GLECF
+(https://glecf.com) con tu certificado digital. Los datos de tus facturas solo
+salen de Odoo después de que lo aceptes en Ajustes.
 """,
     "version": "17.0.1.0.0",
     "category": "Accounting/Localizations/EDI",

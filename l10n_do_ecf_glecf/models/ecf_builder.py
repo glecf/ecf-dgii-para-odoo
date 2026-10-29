@@ -16,16 +16,22 @@ from odoo.tools import float_compare, float_is_zero, float_round
 
 DR_TZ = pytz.timezone("America/Santo_Domingo")
 
-# e-CF types this version sends. The others (41, 43, 46, 47) need data Odoo
-# does not keep on a sales invoice.
-SUPPORTED_TYPES = ("31", "32", "33", "34", "44", "45")
+# e-CF types this version sends: all ten. 46 only in Dominican pesos so far.
+SUPPORTED_TYPES = ("31", "32", "33", "34", "41", "43", "44", "45", "46", "47")
+# Issued by the company itself on a vendor bill: purchases from informal
+# suppliers, minor expenses and payments abroad. In them the "Comprador" of
+# the e-CF is the supplier.
+PURCHASE_TYPES = ("41", "43", "47")
 # Types that carry the expiry date of the sequence.
-TYPES_WITH_SEQUENCE_EXPIRY = ("31", "33", "44", "45")
+TYPES_WITH_SEQUENCE_EXPIRY = ("31", "33", "41", "43", "44", "45", "46", "47")
 # Types whose buyer must have an RNC or cédula.
-TYPES_WITH_BUYER_ID = ("31", "33", "34", "44", "45")
+TYPES_WITH_BUYER_ID = ("31", "33", "34", "41", "44", "45")
+# Types whose lines carry withholdings (Retencion), mandatory on every line.
+TYPES_WITH_WITHHOLDING = ("41", "47")
 
 # ITBIS rate -> DGII IndicadorFacturacion.
 ITBIS_INDICATORS = {18.0: "1", 16.0: "2"}
+ZERO_RATE = "3"
 EXEMPT = "4"
 
 MAX_ITEM_NAME = 80
@@ -50,9 +56,11 @@ def build_ecf_data(move, now=None):
         "Version": "1.0",
         "IdDoc": _id_doc(move, tipo),
         "Emisor": _issuer(move),
-        "Comprador": _buyer(move, tipo),
-        "Totales": totals,
     }
+    # A minor expense has no buyer: the e-CF backs the company's own spending.
+    if tipo != "43":
+        header["Comprador"] = _buyer(move, tipo)
+    header["Totales"] = totals
     data = {
         "Encabezado": header,
         "DetallesItems": items,
@@ -69,17 +77,17 @@ def build_ecf_data(move, now=None):
 def _check_invoice(move, tipo):
     if tipo not in SUPPORTED_TYPES:
         raise UserError(
-            _("%(doc)s: e-CF type %(type)s is not supported yet by this module.")
+            _("%(doc)s: este módulo todavía no envía el tipo de e-CF %(type)s.")
             % {"doc": move.name, "type": tipo or "-"}
         )
     if move.currency_id != move.company_id.currency_id or move.currency_id.name != "DOP":
         raise UserError(
-            _("%s: this version only sends invoices in Dominican pesos (DOP).") % move.name
+            _("%s: esta versión solo envía facturas en pesos dominicanos (DOP).") % move.name
         )
     if not move.l10n_do_fiscal_number:
-        raise UserError(_("%s has no e-NCF number.") % move.name)
+        raise UserError(_("%s no tiene número e-NCF.") % move.name)
     if not move.invoice_date:
-        raise UserError(_("%s has no invoice date.") % move.name)
+        raise UserError(_("%s no tiene fecha de factura.") % move.name)
 
 
 # -- Header ------------------------------------------------------------------
@@ -93,17 +101,25 @@ def _id_doc(move, tipo):
     if tipo in TYPES_WITH_SEQUENCE_EXPIRY:
         if not move.l10n_do_ncf_expiration_date:
             raise UserError(
-                _("%s: set the expiry date of the e-NCF sequence («Valid until») before sending it.")
+                _("%s: indica la fecha de vencimiento de la secuencia e-NCF («Válido hasta») antes de enviarla.")
                 % move.name
             )
         id_doc["FechaVencimientoSecuencia"] = _date(move.l10n_do_ncf_expiration_date)
     if tipo == "34":
         id_doc["IndicadorNotaCredito"] = _credit_note_indicator(move)
-    # Amounts are sent without ITBIS.
-    id_doc["IndicadorMontoGravado"] = "0"
-    id_doc["TipoIngresos"] = move.l10n_do_income_type or "01"
+    # Amounts are sent without ITBIS. Minor expenses, exports and payments
+    # abroad carry no ITBIS, and their format has no such field.
+    if tipo not in ("43", "46", "47"):
+        id_doc["IndicadorMontoGravado"] = "0"
+    # Income type only exists on sales.
+    if tipo not in PURCHASE_TYPES:
+        id_doc["TipoIngresos"] = move.l10n_do_income_type or "01"
 
-    if tipo == "34" or move.payment_state in ("paid", "in_payment"):
+    if tipo == "43":
+        # The format of a minor expense has no payment deadline.
+        if move.payment_state in ("paid", "in_payment"):
+            id_doc["TipoPago"] = "1"
+    elif tipo == "34" or move.payment_state in ("paid", "in_payment"):
         id_doc["TipoPago"] = "1"
     else:
         # On credit: the DGII requires the payment deadline, never before the
@@ -118,10 +134,10 @@ def _issuer(move):
     company = move.company_id
     rnc = _digits(company.vat)
     if not rnc:
-        raise UserError(_("Set the RNC of %s (Tax ID) before sending e-CF.") % company.name)
+        raise UserError(_("Indica el RNC de %s antes de enviar e-CF.") % company.name)
     address = _one_line(" ".join(filter(None, [company.street, company.street2, company.city])))
     if not address:
-        raise UserError(_("Set the address of %s before sending e-CF.") % company.name)
+        raise UserError(_("Indica la dirección de %s antes de enviar e-CF.") % company.name)
     issuer = {
         "RNCEmisor": rnc,
         "RazonSocialEmisor": _one_line(company.name)[:150],
@@ -135,10 +151,19 @@ def _issuer(move):
 
 def _buyer(move, tipo):
     partner = move.commercial_partner_id
+    if tipo in ("46", "47") and not _is_dominican(partner):
+        return _foreign_buyer(move, partner, tipo)
     buyer_id = _digits(partner.vat)
     if tipo in TYPES_WITH_BUYER_ID and len(buyer_id) not in (9, 11):
+        who = _("el proveedor") if tipo in PURCHASE_TYPES else _("el cliente")
         raise UserError(
-            _("%(doc)s: the customer %(name)s needs a valid RNC (9 digits) or cédula (11 digits).")
+            _("%(doc)s: %(who)s %(name)s necesita un RNC (9 dígitos) o una cédula (11 dígitos) válidos.")
+            % {"doc": move.name, "who": who, "name": partner.name}
+        )
+    if tipo == "47":
+        raise UserError(
+            _("%(doc)s: un pago al exterior (E47) es a un proveedor de fuera del país, y %(name)s es de "
+              "República Dominicana. Revisa el país del proveedor.")
             % {"doc": move.name, "name": partner.name}
         )
     buyer = {}
@@ -154,40 +179,83 @@ def _buyer(move, tipo):
     return buyer
 
 
+def _is_dominican(partner):
+    return not partner.country_id or partner.country_id.code == "DO"
+
+
+def _foreign_buyer(move, partner, tipo):
+    """Buyer of an export (46) or supplier of a payment abroad (47).
+
+    It has no RNC: the DGII takes its foreign tax id, if any. A payment abroad
+    carries nothing else.
+    """
+    if not partner.name:
+        raise UserError(_("%s: indica el nombre del cliente o proveedor extranjero.") % move.name)
+    buyer = {}
+    foreign_id = "".join(char for char in (partner.vat or "") if char.isalnum())[:20]
+    if foreign_id:
+        buyer["IdentificadorExtranjero"] = foreign_id
+    buyer["RazonSocialComprador"] = _one_line(partner.name)[:150]
+    if tipo == "46":
+        if partner.email:
+            buyer["CorreoComprador"] = partner.email.strip()[:80]
+        address = _one_line(" ".join(filter(None, [partner.street, partner.street2, partner.city])))
+        if address:
+            buyer["DireccionComprador"] = address[:100]
+        # The DGII only takes letters and spaces here.
+        country = " ".join("".join(c for c in partner.country_id.name if c.isalpha() or c == " ").split())
+        if country:
+            buyer["PaisComprador"] = country[:60]
+    return buyer
+
+
 # -- Lines and totals --------------------------------------------------------
 
 
 def _items_and_totals(move, tipo):
     company = move.company_id
     currency = move.currency_id
-    itbis_group = move.env.ref("account.%s_tax_group_itbis" % company.id, raise_if_not_found=False)
+    groups = _tax_groups(move)
 
     lines = move.invoice_line_ids.filtered(lambda line: line.display_type == "product")
     if not lines:
-        raise UserError(_("%s has no invoice lines.") % move.name)
+        raise UserError(_("%s no tiene líneas.") % move.name)
 
     items = []
-    bases = {"1": 0.0, "2": 0.0, EXEMPT: 0.0}
+    bases = {"1": 0.0, "2": 0.0, ZERO_RATE: 0.0, EXEMPT: 0.0}
+    withheld = {"itbis": 0.0, "isr": 0.0}
     for number, line in enumerate(lines, start=1):
-        indicator = _line_indicator(move, line, tipo, itbis_group)
+        indicator = _line_indicator(move, line, tipo, groups)
         if float_compare(line.quantity, 0, precision_digits=4) <= 0:
-            raise UserError(_("%(doc)s: line «%(line)s» needs a positive quantity.") % {"doc": move.name, "line": line.name})
+            raise UserError(_("%(doc)s: la línea «%(line)s» necesita una cantidad mayor que cero.") % {"doc": move.name, "line": line.name})
 
         net = currency.round(abs(line.price_subtotal))
+        if tipo == "43":
+            # The ITBIS of a minor expense cannot be claimed: it goes inside
+            # the price, and the whole line is exempt.
+            net = currency.round(abs(line.price_total))
         if line.discount and float_compare(line.discount, 100, precision_digits=2) >= 0:
-            raise UserError(_("%(doc)s: line «%(line)s» has a 100%% discount.") % {"doc": move.name, "line": line.name})
-        gross = currency.round(net / (1 - (line.discount or 0) / 100))
+            raise UserError(_("%(doc)s: la línea «%(line)s» tiene un descuento del 100%%.") % {"doc": move.name, "line": line.name})
+        # Minor expenses and payments abroad have no discounts in their
+        # format: the line goes at its net price.
+        with_discount = tipo not in ("43", "47") and line.discount
+        gross = currency.round(net / (1 - (line.discount or 0) / 100)) if with_discount else net
         discount = currency.round(gross - net)
         unit_price = _unit_price(gross, line.quantity)
 
+        service = line.product_id.type == "service" or not line.product_id
         item = {
             "NumeroLinea": str(number),
             "IndicadorFacturacion": indicator,
+        }
+        if tipo in TYPES_WITH_WITHHOLDING:
+            item["Retencion"] = _withholding(move, line, tipo, groups, indicator, service, withheld)
+        item.update({
             **_item_names(line.name or line.product_id.display_name),
-            "IndicadorBienoServicio": "2" if line.product_id.type == "service" or not line.product_id else "1",
+            "IndicadorBienoServicio": "2" if service or tipo == "47" else "1",
             "CantidadItem": _number(line.quantity, 2),
             "PrecioUnitarioItem": unit_price,
-        }
+        })
         if not float_is_zero(discount, precision_digits=2):
             item["DescuentoMonto"] = _amount(discount)
             item["TablaSubDescuento"] = {
@@ -201,9 +269,9 @@ def _items_and_totals(move, tipo):
         items.append(item)
         bases[indicator] += net
 
-    taxes = _itbis_amounts(move, itbis_group)
+    taxes = _itbis_amounts(move, groups["itbis"]) if tipo != "43" else {"1": 0.0, "2": 0.0}
     totals = {}
-    taxed = bases["1"] + bases["2"]
+    taxed = bases["1"] + bases["2"] + bases[ZERO_RATE]
     if not float_is_zero(taxed, precision_digits=2):
         totals["MontoGravadoTotal"] = _amount(taxed)
     for indicator, rate in (("1", "18"), ("2", "16")):
@@ -211,46 +279,138 @@ def _items_and_totals(move, tipo):
             totals["MontoGravadoI%s" % indicator] = _amount(bases[indicator])
             totals["ITBIS%s" % indicator] = rate
             totals["TotalITBIS%s" % indicator] = _amount(taxes[indicator])
+    if not float_is_zero(bases[ZERO_RATE], precision_digits=2):
+        totals["MontoGravadoI3"] = _amount(bases[ZERO_RATE])
+        totals["ITBIS3"] = "0"
     if not float_is_zero(bases[EXEMPT], precision_digits=2):
         totals["MontoExento"] = _amount(bases[EXEMPT])
     total_itbis = taxes["1"] + taxes["2"]
-    if not float_is_zero(total_itbis, precision_digits=2):
+    if not float_is_zero(total_itbis, precision_digits=2) or tipo == "46":
         totals["TotalITBIS"] = _amount(total_itbis)
+    if tipo == "46":
+        totals["TotalITBIS3"] = _amount(0)
 
     total = currency.round(taxed + bases[EXEMPT] + total_itbis)
-    if float_compare(total, abs(move.amount_total), precision_digits=2) != 0:
+    # Odoo takes the withholdings off the invoice total; the e-CF total does
+    # not: they are reported apart.
+    odoo_total = currency.round(abs(move.amount_total) + withheld["itbis"] + withheld["isr"])
+    if float_compare(total, odoo_total, precision_digits=2) != 0:
         raise UserError(
-            _("%(doc)s: the e-CF total (%(ecf)s) does not match the invoice total (%(odoo)s). "
-              "This version only supports ITBIS 18%%, ITBIS 16%% and exempt lines.")
-            % {"doc": move.name, "ecf": _amount(total), "odoo": _amount(abs(move.amount_total))}
+            _("%(doc)s: el total del e-CF (%(ecf)s) no cuadra con el de la factura (%(odoo)s). "
+              "Esta versión solo admite ITBIS 18%%, ITBIS 16%%, líneas exentas y retenciones de ITBIS e ISR.")
+            % {"doc": move.name, "ecf": _amount(total), "odoo": _amount(odoo_total)}
         )
     totals["MontoTotal"] = _amount(total)
+    if tipo == "41":
+        totals["TotalITBISRetenido"] = _amount(withheld["itbis"])
+    if tipo in TYPES_WITH_WITHHOLDING:
+        totals["TotalISRRetencion"] = _amount(withheld["isr"])
     return items, totals
 
 
-def _line_indicator(move, line, tipo, itbis_group):
-    itbis = line.tax_ids.filtered(lambda tax: itbis_group and tax.tax_group_id == itbis_group)
-    others = line.tax_ids - itbis
+def _tax_groups(move):
+    company = move.company_id
+    return {
+        name: move.env.ref("account.%s_tax_group_%s" % (company.id, name), raise_if_not_found=False)
+        for name in ("itbis", "isr")
+    }
+
+
+def _is_withholding(tax, groups):
+    """Odoo keeps withholdings as negative ITBIS or ISR taxes."""
+    return tax.amount < 0 and tax.tax_group_id in (groups["itbis"], groups["isr"])
+
+
+def _line_indicator(move, line, tipo, groups):
+    itbis_group = groups["itbis"]
+    withholdings = line.tax_ids.filtered(lambda tax: _is_withholding(tax, groups))
+    if withholdings and tipo not in TYPES_WITH_WITHHOLDING:
+        raise UserError(
+            _("%(doc)s: la línea «%(line)s» lleva retenciones (%(taxes)s), y este tipo de e-CF no las admite. "
+              "Solo las llevan las compras (E41) y los pagos al exterior (E47).")
+            % {"doc": move.name, "line": line.name, "taxes": ", ".join(withholdings.mapped("name"))}
+        )
+    if tipo == "47" and withholdings.filtered(lambda tax: tax.tax_group_id == itbis_group):
+        raise UserError(
+            _("%(doc)s: un pago al exterior (E47) solo retiene ISR, no ITBIS (línea «%(line)s»).")
+            % {"doc": move.name, "line": line.name}
+        )
+    itbis = line.tax_ids.filtered(lambda tax: itbis_group and tax.tax_group_id == itbis_group) - withholdings
+    others = line.tax_ids - itbis - withholdings
     if others.filtered(lambda tax: tax.amount):
         raise UserError(
-            _("%(doc)s: line «%(line)s» has taxes other than ITBIS (%(taxes)s). "
-              "This version does not send withholdings or selective taxes yet.")
+            _("%(doc)s: la línea «%(line)s» tiene impuestos que no son ITBIS ni retenciones (%(taxes)s). "
+              "Esta versión todavía no envía impuestos selectivos ni otros cargos.")
             % {"doc": move.name, "line": line.name, "taxes": ", ".join(others.mapped("name"))}
         )
     rated = itbis.filtered(lambda tax: tax.amount)
+    if tipo in ("43", "47"):
+        # Minor expenses and payments abroad are always exempt.
+        if tipo == "47" and rated:
+            raise UserError(
+                _("%(doc)s: un pago al exterior (E47) no lleva ITBIS (línea «%(line)s»).")
+                % {"doc": move.name, "line": line.name}
+            )
+        return EXEMPT
+    if tipo == "46":
+        if rated:
+            raise UserError(
+                _("%(doc)s: una exportación (E46) va a tasa cero: quita el ITBIS de la línea «%(line)s».")
+                % {"doc": move.name, "line": line.name}
+            )
+        return ZERO_RATE
     if not rated:
         return EXEMPT
     if len(rated) > 1 or rated.amount_type != "percent" or rated.amount not in ITBIS_INDICATORS:
         raise UserError(
-            _("%(doc)s: line «%(line)s» must have a single ITBIS of 18%% or 16%%, or none.")
+            _("%(doc)s: la línea «%(line)s» debe llevar un solo ITBIS, del 18%% o del 16%%, o ninguno.")
             % {"doc": move.name, "line": line.name}
         )
     if tipo == "44":
         raise UserError(
-            _("%(doc)s: a special regime invoice (E44) cannot charge ITBIS (line «%(line)s»).")
+            _("%(doc)s: una factura de régimen especial (E44) no puede cobrar ITBIS (línea «%(line)s»).")
             % {"doc": move.name, "line": line.name}
         )
     return ITBIS_INDICATORS[rated.amount]
+
+
+def _withholding(move, line, tipo, groups, indicator, service, withheld):
+    """The Retencion of a line of a purchase (41) or a payment abroad (47).
+
+    The amounts are the ones Odoo computes with the withholding taxes of the
+    line; the module does not decide any rate.
+    """
+    currency = move.currency_id
+    amounts = {"itbis": 0.0, "isr": 0.0}
+    taxes = line.tax_ids.filtered(lambda tax: _is_withholding(tax, groups))
+    if taxes:
+        price = line.price_unit * (1 - (line.discount or 0) / 100)
+        computed = line.tax_ids.compute_all(
+            price, currency, line.quantity, product=line.product_id, partner=move.partner_id
+        )["taxes"]
+        for result in computed:
+            tax = taxes.filtered(lambda t: t.id == result["id"])
+            if tax:
+                key = "itbis" if tax.tax_group_id == groups["itbis"] else "isr"
+                amounts[key] += abs(result["amount"])
+    amounts = {key: currency.round(value) for key, value in amounts.items()}
+    if not service and not float_is_zero(amounts["isr"], precision_digits=2):
+        raise UserError(
+            _("%(doc)s: la línea «%(line)s» retiene ISR, y la DGII solo lo admite en servicios. "
+              "Marca el producto como servicio o quita la retención de ISR.")
+            % {"doc": move.name, "line": line.name}
+        )
+    withheld["itbis"] += amounts["itbis"]
+    withheld["isr"] += amounts["isr"]
+    retention = {"IndicadorAgenteRetencionoPercepcion": "1"}
+    if tipo == "41":
+        # An exempt line withholds no ITBIS, and the DGII wants it as 0.
+        retention["MontoITBISRetenido"] = _amount(amounts["itbis"] if indicator != EXEMPT else 0)
+        if service:
+            retention["MontoISRRetenido"] = _amount(amounts["isr"])
+    else:
+        retention["MontoISRRetenido"] = _amount(amounts["isr"])
+    return retention
 
 
 def _itbis_amounts(move, itbis_group):
@@ -301,7 +461,7 @@ def _reference(move, tipo):
     origin_ncf = move.l10n_do_origin_ncf or origin.l10n_do_fiscal_number
     if not origin_ncf or not origin.invoice_date:
         raise UserError(
-            _("%s: the note must point to a posted invoice of this company (field «Modifies»).") % move.name
+            _("%s: la nota debe apuntar a una factura publicada de esta empresa (campo «Modifica»).") % move.name
         )
     code = move.l10n_do_ecf_modification_code
     if not code:

@@ -32,44 +32,43 @@ class ResCompany(models.Model):
     _inherit = "res.company"
 
     glecf_api_key = fields.Char(
-        string="GLECF API key",
+        string="Clave de API de GLECF",
         groups="base.group_system",
         copy=False,
     )
     glecf_consent = fields.Boolean(
-        string="Send my invoices to GLECF",
+        string="Enviar mis facturas a GLECF",
         copy=False,
-        help="Your e-CF invoices are sent to GLECF, which signs them with your "
-        "certificate and delivers them to the DGII. Nothing is sent until "
-        "this is checked.",
+        help="Tus facturas e-CF se envían a GLECF, que las firma con tu certificado "
+        "y las entrega a la DGII. No se envía nada hasta marcar esta casilla.",
     )
     glecf_auto_send = fields.Boolean(
-        string="Send e-CF when posting",
+        string="Enviar el e-CF al publicar",
         default=True,
-        help="Send each e-CF a moment after it is posted. If unchecked, use "
-        "the «Send to DGII» button on the invoice.",
+        help="Envía cada e-CF un momento después de publicarlo. Si no está marcado, "
+        "usa el botón «Enviar a la DGII» de la factura.",
     )
     l10n_do_ecf_service_env = fields.Selection(
         selection=[
-            ("TesteCF", "Test"),
-            ("CerteCF", "Certification"),
-            ("eCF", "Production"),
+            ("TesteCF", "Pruebas"),
+            ("CerteCF", "Certificación"),
+            ("eCF", "Producción"),
         ],
-        string="DGII environment",
+        string="Ambiente de la DGII",
         default="TesteCF",
         readonly=True,
-        help="Set by your GLECF API key: each key belongs to one environment. "
-        "It is updated with every invoice GLECF processes.",
+        help="Lo fija tu clave de API de GLECF: cada clave es de un ambiente. "
+        "Se actualiza con cada factura que procesa GLECF.",
     )
 
     # Only what helps to recognise the certificate. The certificate itself and
     # its password are kept by GLECF, never in Odoo.
-    glecf_certificate_name = fields.Char(string="Certificate holder", readonly=True, copy=False)
-    glecf_certificate_valid_until = fields.Date(string="Certificate valid until", readonly=True, copy=False)
+    glecf_certificate_name = fields.Char(string="Titular del certificado", readonly=True, copy=False)
+    glecf_certificate_valid_until = fields.Date(string="Certificado válido hasta", readonly=True, copy=False)
 
     # The GLECF company the API key belongs to, read when connecting.
-    glecf_account_name = fields.Char(string="GLECF account", readonly=True, copy=False)
-    glecf_account_rnc = fields.Char(string="GLECF account RNC", readonly=True, copy=False)
+    glecf_account_name = fields.Char(string="Cuenta de GLECF", readonly=True, copy=False)
+    glecf_account_rnc = fields.Char(string="RNC de la cuenta de GLECF", readonly=True, copy=False)
 
     glecf_sequences_to_check = fields.Integer(compute="_compute_glecf_sequences_to_check")
 
@@ -86,7 +85,7 @@ class ResCompany(models.Model):
         types = self.env["l10n_do.account.journal.document_type"]
         return {
             "type": "ir.actions.act_window",
-            "name": _("e-NCF sequences"),
+            "name": _("Secuencias e-NCF"),
             "res_model": types._name,
             "view_mode": "tree",
             "views": [(self.env.ref("l10n_do_ecf_glecf.glecf_sequences_view_tree").id, "tree")],
@@ -172,9 +171,9 @@ class ResCompany(models.Model):
         """Why sending would fail, if the GLECF account is another company."""
         if self.glecf_account_rnc and self.glecf_account_rnc != self._glecf_odoo_rnc():
             return _(
-                "The GLECF account of this API key is %(account)s, RNC %(glecf)s, but the RNC of "
-                "%(company)s in Odoo is %(odoo)s. The DGII would reject every invoice: use the API "
-                "key of this company's GLECF account, or correct the RNC in Odoo."
+                "La cuenta de GLECF de esta clave de API es %(account)s, RNC %(glecf)s, pero el RNC "
+                "de %(company)s en Odoo es %(odoo)s. La DGII rechazaría todas las facturas: usa la "
+                "clave de API de la cuenta de GLECF de esta empresa o corrige el RNC en Odoo."
             ) % {
                 "account": self.glecf_account_name or "-",
                 "glecf": self.glecf_account_rnc,
@@ -225,11 +224,11 @@ class ResCompany(models.Model):
         self.ensure_one()
         if not self.sudo().glecf_api_key:
             raise UserError(
-                _("Connect %s to GLECF first: Settings > Invoicing > Electronic invoicing.") % self.name
+                _("Conecta primero %s con GLECF: Ajustes > Facturación > Facturación electrónica.") % self.name
             )
         if not self.glecf_consent:
             raise UserError(
-                _("%s has not accepted sending its invoices to GLECF yet (Settings > Invoicing).") % self.name
+                _("%s todavía no ha aceptado enviar sus facturas a GLECF (Ajustes > Facturación).") % self.name
             )
         if not self.glecf_account_rnc:
             try:
@@ -260,25 +259,25 @@ class ResCompany(models.Model):
                 "tag": "display_notification",
                 "params": {
                     "type": "danger",
-                    "title": _("This API key is from another company"),
+                    "title": _("Esta clave de API es de otra empresa"),
                     "message": mismatch,
                     "sticky": True,
                     "next": {"type": "ir.actions.client", "tag": "soft_reload"},
                 },
             }
         if self.glecf_certificate_name:
-            message = _("The API key works. Certificate of %(name)s, valid until %(date)s.") % {
+            message = _("La clave de API funciona. Certificado de %(name)s, válido hasta %(date)s.") % {
                 "name": self.glecf_certificate_name,
                 "date": self.glecf_certificate_valid_until or "-",
             }
         else:
-            message = _("The API key works. Now upload your digital certificate.")
+            message = _("La clave de API funciona. Ahora sube tu certificado digital.")
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "type": "success",
-                "title": _("Connected to GLECF"),
+                "title": _("Conectado con GLECF"),
                 "message": message,
                 "sticky": False,
                 "next": {"type": "ir.actions.client", "tag": "soft_reload"},

@@ -8,7 +8,7 @@ import pytz
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
-from .ecf_builder import DR_TZ, SUPPORTED_TYPES, build_ecf_data, ecf_type
+from .ecf_builder import DR_TZ, PURCHASE_TYPES, SUPPORTED_TYPES, build_ecf_data, ecf_type
 from .glecf_client import GlecfError
 
 _logger = logging.getLogger(__name__)
@@ -29,24 +29,24 @@ class AccountMove(models.Model):
 
     glecf_state = fields.Selection(
         selection=[
-            ("to_send", "To send"),
-            ("sent", "Waiting for the DGII"),
-            ("accepted", "Accepted"),
-            ("conditional", "Accepted with observations"),
-            ("rejected", "Rejected"),
-            ("error", "Not sent"),
+            ("to_send", "Por enviar"),
+            ("sent", "Esperando a la DGII"),
+            ("accepted", "Aceptado"),
+            ("conditional", "Aceptado con observaciones"),
+            ("rejected", "Rechazado"),
+            ("error", "No enviado"),
         ],
-        string="e-CF status",
+        string="Estado del e-CF",
         copy=False,
         readonly=True,
         tracking=True,
     )
-    glecf_document_id = fields.Char(string="GLECF document", copy=False, readonly=True)
-    glecf_message = fields.Text(string="e-CF message", copy=False, readonly=True)
+    glecf_document_id = fields.Char(string="Documento en GLECF", copy=False, readonly=True)
+    glecf_message = fields.Text(string="Mensaje del e-CF", copy=False, readonly=True)
     # The DGII verification link GLECF built from the signed XML. The printed
     # QR uses it instead of rebuilding it here, so it always matches what the
     # DGII received (same signing time, same total).
-    glecf_qr_url = fields.Char(string="DGII verification link", copy=False, readonly=True)
+    glecf_qr_url = fields.Char(string="Enlace de verificación de la DGII", copy=False, readonly=True)
 
     @api.depends("l10n_do_ecf_security_code", "l10n_do_ecf_sign_date", "invoice_date", "glecf_qr_url")
     def _compute_l10n_do_electronic_stamp(self):
@@ -72,11 +72,18 @@ class AccountMove(models.Model):
         self.ensure_one()
         return (
             self.state == "posted"
-            and self.move_type in ("out_invoice", "out_refund")
             and self.is_ecf_invoice
             and not self.l10n_latam_manual_document_number
             and ecf_type(self) in SUPPORTED_TYPES
+            and self.move_type in self._glecf_move_types()
         )
+
+    def _glecf_move_types(self):
+        """Sales go out on customer invoices and notes; purchases, minor
+        expenses and payments abroad on vendor bills."""
+        if ecf_type(self) in PURCHASE_TYPES:
+            return ("in_invoice",)
+        return ("out_invoice", "out_refund")
 
     def _post(self, soft=True):
         posted = super()._post(soft)
@@ -99,8 +106,8 @@ class AccountMove(models.Model):
         for move in self:
             if move.glecf_state in SENT_STATES:
                 raise UserError(
-                    _("%s was already sent to the DGII and cannot be changed. "
-                      "Issue a credit or debit note instead.") % move.name
+                    _("%s ya se envió a la DGII y no se puede cambiar. "
+                      "Emite una nota de crédito o de débito.") % move.name
                 )
         return super().button_draft()
 
@@ -150,12 +157,12 @@ class AccountMove(models.Model):
             "glecf_message": False,
         })
         if (answer.get("status") or "").lower() in WAITING:
-            self.message_post(body=_("e-CF sent to GLECF. Waiting for the answer of the DGII."))
+            self.message_post(body=_("e-CF enviado a GLECF. Esperando la respuesta de la DGII."))
         self._glecf_apply(answer)
 
     def _glecf_fail(self, message):
         self.write({"glecf_state": "error", "glecf_message": message})
-        self.message_post(body=_("The e-CF was not sent: %s") % message)
+        self.message_post(body=_("El e-CF no se envió: %s") % message)
 
     # -- Reading the answer ---------------------------------------------------
 
@@ -204,11 +211,11 @@ class AccountMove(models.Model):
         self.write(values)
 
         if state == "rejected":
-            body = _("The DGII rejected the e-CF: %s") % (values["glecf_message"] or "-")
+            body = _("La DGII rechazó el e-CF: %s") % (values["glecf_message"] or "-")
         elif state == "conditional":
-            body = _("The DGII accepted the e-CF with observations: %s") % (values["glecf_message"] or "-")
+            body = _("La DGII aceptó el e-CF con observaciones: %s") % (values["glecf_message"] or "-")
         else:
-            body = _("The DGII accepted the e-CF.")
+            body = _("La DGII aceptó el e-CF.")
         self.message_post(body=body)
 
     # -- Background job -------------------------------------------------------

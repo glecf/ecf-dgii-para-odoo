@@ -4,10 +4,9 @@
         <field name="name">glecf.certificate.wizard.form</field>
         <field name="model">glecf.certificate.wizard</field>
         <field name="arch" type="xml">
-            <form string="Upload certificate">
+            <form string="Subir certificado">
                 <p class="text-muted">
-                    The certificate goes straight to GLECF, which keeps it encrypted and signs your e-CF with it.
-                    Odoo does not keep the file or the password.
+                    El certificado va directo a GLECF, que lo guarda cifrado y firma con él tus e-CF. Odoo no guarda ni el archivo ni la contraseña.
                 </p>
                 <group>
                     <field name="company_id" invisible="1"/>
@@ -16,15 +15,15 @@
                     <field name="certificate_password" password="True"/>
                 </group>
                 <footer>
-                    <button name="action_upload" type="object" string="Upload to GLECF" class="btn-primary"/>
-                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    <button name="action_upload" type="object" string="Subir a GLECF" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
         </field>
     </record>
 
     <record id="action_glecf_certificate_wizard" model="ir.actions.act_window">
-        <field name="name">Upload certificate</field>
+        <field name="name">Subir certificado</field>
         <field name="res_model">glecf.certificate.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
