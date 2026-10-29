@@ -57,7 +57,12 @@ class AccountMove(models.Model):
 
     def _post(self, soft=True):
         posted = super()._post(soft)
-        to_send = posted.filtered(lambda move: not move.glecf_state and move._glecf_applies())
+        # An invoice that was not sent or was rejected, corrected and posted
+        # again, goes out again with the same e-NCF: GLECF reprocesses its
+        # document because the idempotency key is the same.
+        to_send = posted.filtered(
+            lambda move: move.glecf_state in (False, "error", "rejected") and move._glecf_applies()
+        )
         if to_send:
             to_send.write({"glecf_state": "to_send", "glecf_message": False})
             # Never send inside the posting transaction: if it were rolled
