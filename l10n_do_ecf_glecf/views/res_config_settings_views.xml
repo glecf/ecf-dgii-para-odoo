@@ -23,14 +23,14 @@
                             </div>
                         </div>
                         <div class="mt8" invisible="not glecf_account_name">
-                            <field name="glecf_account_name" class="fw-bold"/>
+                            <strong><field name="glecf_account_name" class="oe_inline" style="width: auto;"/></strong>
                             <div class="text-muted">
                                 RNC <field name="glecf_account_rnc" class="oe_inline"/>
                             </div>
                         </div>
                         <div class="mt16" invisible="not glecf_plan_label">
-                            <div class="fw-bold">
-                                Plan <field name="glecf_plan_label" class="oe_inline"/>
+                            <div>
+                                <strong>Plan <field name="glecf_plan_label" class="oe_inline"/></strong>
                             </div>
                             <field name="glecf_plan_usage" class="text-muted" decoration-warning="glecf_plan_low"/>
                             <a href="https://app.glecf.com/cuenta" target="_blank"
@@ -39,7 +39,7 @@
                         <div class="mt16" invisible="not glecf_api_key">
                             <div>
                                 <span class="o_light_label">Ambiente de la DGII: </span>
-                                <field name="l10n_do_ecf_service_env" class="oe_inline fw-bold"/>
+                                <strong><field name="l10n_do_ecf_service_env" class="oe_inline"/></strong>
                             </div>
                             <div invisible="l10n_do_ecf_service_env == 'eCF' or glecf_issuer_state == 'no'">
                                 <button name="action_glecf_connect" type="object"
@@ -83,7 +83,7 @@
                         </div>
                         <div class="mt16 o_light_label">Certificado digital</div>
                         <div invisible="not glecf_certificate_name">
-                            <field name="glecf_certificate_name" class="fw-bold"/>
+                            <strong><field name="glecf_certificate_name" class="oe_inline" style="width: auto;"/></strong>
                             <div class="text-muted">
                                 Válido hasta <field name="glecf_certificate_valid_until" class="oe_inline"/>
                             </div>
