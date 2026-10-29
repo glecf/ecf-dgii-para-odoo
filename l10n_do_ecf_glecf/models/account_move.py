@@ -62,6 +62,9 @@ class AccountMove(models.Model):
     glecf_ncf_reusable = fields.Boolean(copy=False, readonly=True)
     # When GLECF took it: while the DGII answer is fresh, the job checks more often.
     glecf_sent_at = fields.Datetime(copy=False, readonly=True)
+    # With «Send on posting» the invoice goes out on its own: the button would
+    # only make people think they have to press it (Jorge, 2026-10-29).
+    glecf_auto_send = fields.Boolean(related="company_id.glecf_auto_send")
     # A credit note of an invoice with ITBIS, with no tax on any line: Indexa
     # creates them so with «Porcentaje» or «Importe» (2026-10-29).
     glecf_refund_missing_tax = fields.Boolean(compute="_compute_glecf_refund_missing_tax")

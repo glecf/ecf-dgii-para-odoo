@@ -92,7 +92,7 @@ cambia solo en la pantalla, sin recargar.
 
 | Estado | Qué significa |
 |---|---|
-| Por enviar | Sale en un momento |
+| Por enviar | Sale sola en unos segundos. Si **Enviar al publicar** está desactivado en Ajustes, pulsa **Enviar a la DGII** |
 | Esperando a la DGII | Enviado; falta la respuesta |
 | Aceptado | Listo |
 | Aceptado con observaciones | Válido; lee el mensaje |

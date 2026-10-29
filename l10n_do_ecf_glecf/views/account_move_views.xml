@@ -8,7 +8,7 @@
             <xpath expr="//header/button[@name='button_draft']" position="before">
                 <button name="action_glecf_send" type="object" string="Enviar a la DGII"
                         class="btn-primary"
-                        invisible="state != 'posted' or glecf_state not in ('to_send', 'error')"
+                        invisible="state != 'posted' or glecf_state not in ('to_send', 'error') or (glecf_state == 'to_send' and glecf_auto_send)"
                         groups="account.group_account_invoice"/>
                 <button name="action_glecf_retry" type="object" string="Reintentar envío"
                         class="btn-primary"
@@ -41,6 +41,7 @@
                        decoration-danger="glecf_state in ('rejected', 'error', 'review')"/>
                 <field name="glecf_remote_status" invisible="1"/>
                 <field name="glecf_retryable" invisible="1"/>
+                <field name="glecf_auto_send" invisible="1"/>
                 <field name="glecf_ncf_reusable" invisible="1"/>
                 <field name="glecf_message" invisible="not glecf_message"/>
             </xpath>
