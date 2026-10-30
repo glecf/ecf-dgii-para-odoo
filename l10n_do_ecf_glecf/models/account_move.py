@@ -16,6 +16,7 @@ from .ecf_builder import (
     PURCHASE_TYPES,
     SUPPORTED_TYPES,
     TEST_SEQUENCE_EXPIRY,
+    _origin,
     _sequence_expiry,
     build_ecf_data,
     ecf_type,
@@ -202,6 +203,13 @@ class AccountMove(models.Model):
                     "ncf": move.l10n_do_origin_ncf,
                     "by": annulled.l10n_do_fiscal_number or annulled.name,
                 })
+            # Same rejection, same lost number (code 615, 2026-10-30).
+            origin = _origin(move) if ecf_type(move) in ("33", "34") else False
+            if origin and move.invoice_date and origin.invoice_date and move.invoice_date < origin.invoice_date:
+                raise UserError(_(
+                    "La fecha de esta nota no puede ser anterior a la de %(ncf)s (%(date)s): "
+                    "la DGII la rechazaría y el número se perdería."
+                ) % {"ncf": origin.l10n_do_fiscal_number, "date": origin.invoice_date.strftime("%d/%m/%Y")})
         # The first e-NCF of each type is written by hand. The form asks for it,
         # but nothing stopped posting without it: the invoice stayed posted with
         # no number and failed later, when it was sent (2026-10-30).
