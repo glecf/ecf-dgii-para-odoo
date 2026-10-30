@@ -122,6 +122,11 @@ hora de la firma, como pide la DGII.
 
 ![Factura impresa con el QR](img/09-factura-impresa.png)
 
+**Si el PDF sale sin QR, sin logo o sin diseño**, Odoo no llega a su propia
+dirección al generarlo. Pasa sobre todo con Docker o detrás de un proxy. Activa el
+modo de desarrollador, ve a Ajustes > Técnico > Parámetros del sistema y crea
+`report.url` con `http://localhost:8069`. Si tu Odoo usa otro puerto, pon ese.
+
 ## 7. Los e-CF que recibes
 
 Los comprobantes que te mandan tus proveedores llegan a GLECF y entran en Odoo
