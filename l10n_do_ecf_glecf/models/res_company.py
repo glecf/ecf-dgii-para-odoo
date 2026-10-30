@@ -142,8 +142,8 @@ class ResCompany(models.Model):
             "type": "ir.actions.act_window",
             "name": _("Secuencias e-NCF"),
             "res_model": types._name,
-            "view_mode": "tree",
-            "views": [(self.env.ref("l10n_do_ecf_glecf.glecf_sequences_view_tree").id, "tree")],
+            "view_mode": "list",
+            "views": [(self.env.ref("l10n_do_ecf_glecf.glecf_sequences_view_tree").id, "list")],
             "domain": types._glecf_issued_domain(self),
             "target": "current",
         }
@@ -152,7 +152,11 @@ class ResCompany(models.Model):
         if "glecf_api_key" in vals:
             # Another key may belong to another company: read it again.
             vals = dict(vals, glecf_account_name=False, glecf_account_rnc=False)
-        return super().write(vals)
+        res = super().write(vals)
+        if vals.get("glecf_consent"):
+            # What was waiting for the consent goes out now, not on the next pass.
+            self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync").sudo()._trigger()
+        return res
 
     def _glecf_odoo_rnc(self):
         return "".join(char for char in (self.vat or "") if char.isdigit())

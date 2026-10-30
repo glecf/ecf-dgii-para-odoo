@@ -8,7 +8,7 @@
             <xpath expr="//header/button[@name='button_draft']" position="before">
                 <button name="action_glecf_send" type="object" string="Enviar a la DGII"
                         class="btn-primary"
-                        invisible="state != 'posted' or glecf_state not in ('to_send', 'error') or (glecf_state == 'to_send' and glecf_auto_send)"
+                        invisible="state != 'posted' or glecf_state not in ('to_send', 'error') or (glecf_state == 'to_send' and glecf_auto_send and glecf_consent)"
                         groups="account.group_account_invoice"/>
                 <button name="action_glecf_retry" type="object" string="Reintentar envío"
                         class="btn-primary"
@@ -24,6 +24,17 @@
             </xpath>
             <xpath expr="//sheet/*[1]" position="before">
                 <field name="glecf_refund_missing_tax" invisible="1"/>
+                <field name="glecf_consent" invisible="1"/>
+                <field name="glecf_will_send" invisible="1"/>
+                <div class="alert alert-info" role="alert" invisible="not glecf_will_send">
+                    Al confirmar, este documento se enviará a la DGII como e-CF.
+                    Ya aceptado no se puede borrar: se corrige con una nota de crédito o de débito.
+                </div>
+                <div class="alert alert-warning" role="alert"
+                     invisible="state != 'posted' or glecf_state != 'to_send' or glecf_consent">
+                    Este e-CF no saldrá a la DGII hasta que aceptes «Datos que se envían a GLECF»
+                    en Ajustes &gt; Facturación.
+                </div>
                 <div class="alert alert-warning d-flex align-items-center gap-3" role="alert"
                      invisible="state != 'draft' or not glecf_refund_missing_tax">
                     <span>La factura original lleva ITBIS y esta nota de crédito no. Si devuelves parte
@@ -53,7 +64,7 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_out_invoice_tree"/>
         <field name="arch" type="xml">
-            <field name="state" position="before">
+            <field name="status_in_payment" position="before">
                 <field name="glecf_state" widget="badge" optional="show"
                        decoration-info="glecf_state in ('to_send', 'sent')"
                        decoration-success="glecf_state == 'accepted'"

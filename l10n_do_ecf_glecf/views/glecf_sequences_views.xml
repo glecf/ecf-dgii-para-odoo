@@ -5,7 +5,7 @@
         <field name="model">l10n_do.account.journal.document_type</field>
         <field name="priority">100</field>
         <field name="arch" type="xml">
-            <tree string="Secuencias e-NCF" editable="top" create="false" delete="false"
+            <list string="Secuencias e-NCF" editable="top" create="false" delete="false"
                   decoration-warning="glecf_expiry_unchecked"
                   default_order="l10n_latam_document_type_id">
                 <field name="l10n_latam_document_type_id" readonly="1"/>
@@ -15,7 +15,7 @@
                 <field name="l10n_do_ncf_expiration_date" string="Válida hasta"/>
                 <field name="glecf_expiry_confirmed" widget="boolean_toggle"/>
                 <field name="glecf_expiry_unchecked" column_invisible="True"/>
-            </tree>
+            </list>
         </field>
     </record>
 </odoo>
