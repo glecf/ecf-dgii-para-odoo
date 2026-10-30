@@ -73,6 +73,11 @@ class AccountMove(models.Model):
     # With «Send on posting» the invoice goes out on its own: the button would
     # only make people think they have to press it (Jorge, 2026-10-29).
     glecf_auto_send = fields.Boolean(related="company_id.glecf_auto_send")
+    # Without this nothing leaves Odoo: the invoice must say so, or it just
+    # stays «to send» forever (2026-10-30).
+    glecf_consent = fields.Boolean(related="company_id.glecf_consent")
+    # An accepted e-CF cannot be deleted: say so before posting (2026-10-30).
+    glecf_will_send = fields.Boolean(compute="_compute_glecf_will_send")
     # A credit note of an invoice with ITBIS, with no tax on any line: Indexa
     # creates them so with «Porcentaje» or «Importe» (2026-10-29).
     glecf_refund_missing_tax = fields.Boolean(compute="_compute_glecf_refund_missing_tax")
@@ -113,6 +118,24 @@ class AccountMove(models.Model):
             expiry = _sequence_expiry(self)
         return expiry.strftime("%d/%m/%Y") if expiry else ""
 
+    @api.depends(
+        "state", "move_type", "is_ecf_invoice", "l10n_latam_document_type_id",
+        "l10n_latam_manual_document_number", "company_id.glecf_auto_send",
+        "company_id.glecf_consent",
+    )
+    def _compute_glecf_will_send(self):
+        for move in self:
+            move.glecf_will_send = bool(
+                move.state == "draft"
+                and move.is_ecf_invoice
+                and not move.l10n_latam_manual_document_number
+                and move.l10n_latam_document_type_id
+                and ecf_type(move) in SUPPORTED_TYPES
+                and move.move_type in move._glecf_move_types()
+                and move.company_id.glecf_auto_send
+                and move.company_id.glecf_consent
+            )
+
     # -- Which invoices -------------------------------------------------------
 
     def _glecf_applies(self):
@@ -133,6 +156,19 @@ class AccountMove(models.Model):
         return ("out_invoice", "out_refund")
 
     def _post(self, soft=True):
+        # The first e-NCF of each type is written by hand. The form asks for it,
+        # but nothing stopped posting without it: the invoice stayed posted with
+        # no number and failed later, when it was sent (2026-10-30).
+        missing = self.filtered(
+            lambda move: move.l10n_do_enable_first_sequence
+            and not move.l10n_latam_document_number
+        )
+        if missing:
+            raise UserError(_(
+                "Escribe el primer número fiscal de este tipo antes de confirmar "
+                "(empieza por %s). Debe ser el primero de la secuencia que te "
+                "autorizó la DGII."
+            ) % missing[0].l10n_latam_document_type_id.doc_code_prefix)
         posted = super()._post(soft)
         # An invoice that was not sent or was rejected, corrected and posted
         # again, goes out again with the same e-NCF: GLECF reprocesses its
@@ -459,6 +495,30 @@ class AccountMove(models.Model):
         self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync")._trigger()
 
     @api.model
+    def _glecf_wait_answers(self, moves, seconds=30):
+        """Ask for the answer right after sending. The DGII takes seconds and
+        Odoo's job runner only wakes up once a minute, so the invoice stayed
+        «waiting» for that minute with the answer ready (2026-10-30)."""
+        deadline = time.monotonic() + seconds
+        while time.monotonic() < deadline:
+            self.env.cr.commit()
+            moves.invalidate_recordset()
+            waiting = moves.filtered(lambda move: move.glecf_state == "sent")
+            if not waiting:
+                return
+            time.sleep(3)
+            for move in waiting:
+                try:
+                    move.with_company(move.company_id)._glecf_refresh()
+                    if move.glecf_state != "sent":
+                        move._glecf_notify_change()
+                    self.env.cr.commit()
+                except SerializationFailure:
+                    self.env.cr.rollback()
+                except Exception:
+                    self.env.cr.rollback()
+                    _logger.exception("GLECF: answer of %s not read", move.display_name)
+
     def _cron_glecf_sync(self, batch=50):
         """Send what is waiting and read the answers of what was sent.
 
@@ -506,6 +566,7 @@ class AccountMove(models.Model):
                     self.env.cr.rollback()
                     _logger.exception("GLECF: %s failed for %s", step, move.display_name)
                     break
+        self._glecf_wait_answers(pending)
         # What is left of the plan changes with every e-CF sent: read it again
         # for the companies that sent something, and once a day for every
         # connected company (a company that is not an issuer today may be one
@@ -532,6 +593,17 @@ class AccountMove(models.Model):
             except Exception:
                 self.env.cr.rollback()
                 _logger.info("GLECF: plan of %s not available", company.name)
+        # The DGII answers in seconds and the next pass is minutes away: while
+        # something was just sent, come back soon (2026-10-30). Past ten minutes
+        # the DGII is slow and the regular pass is enough.
+        now = fields.Datetime.now()
+        if moves.search_count([
+            ("glecf_state", "=", "sent"),
+            ("glecf_sent_at", ">=", fields.Datetime.subtract(now, minutes=10)),
+        ]):
+            self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync")._trigger(
+                fields.Datetime.add(now, seconds=20)
+            )
         # The DGII usually answers within a minute or two: while something sent
         # in the last quarter of an hour still waits, look again in 30 seconds
         # instead of the usual five minutes. Older ones wait for the usual run.
