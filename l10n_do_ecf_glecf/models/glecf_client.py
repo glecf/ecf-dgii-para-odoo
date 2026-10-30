@@ -66,7 +66,8 @@ class GlecfClient:
         except ValueError:
             data = {}
 
-        if response.status_code in (401, 403) and not _detail(data):
+        # 401 is always the key: its text comes from the server, in English.
+        if response.status_code == 401 or (response.status_code == 403 and not _detail(data)):
             raise GlecfError(
                 _("GLECF no aceptó la clave de API. Revísala en Ajustes."),
                 response.status_code,
