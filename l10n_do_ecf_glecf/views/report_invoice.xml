@@ -21,6 +21,20 @@
         <xpath expr="//t[@t-if='o.l10n_do_ecf_sign_date']/span" position="attributes">
             <attribute name="t-out">o._glecf_sign_date_text()</attribute>
         </xpath>
+        <!-- Amounts and labels of the totals follow this language too, and they
+             came out in English with a contact in English (2026-10-30). -->
+        <xpath expr="//t[@t-set='o'][1]" position="before">
+            <t t-set="lang" t-value="o._glecf_report_lang() or lang"/>
+        </xpath>
+        <!-- Without the signature there is no QR, and the page still looked like
+             a valid invoice (2026-10-30). -->
+        <xpath expr="//div[@id='right-elements']/.." position="before">
+            <div t-if="ecf_representation and (not o.l10n_do_ecf_security_code or o.glecf_state == 'rejected')"
+                 style="border: 1px solid #b45309; color: #b45309; padding: 6px 10px; margin-bottom: 12px;">
+                <strong>Este e-CF no está aceptado por la DGII.</strong>
+                No tiene valor fiscal.
+            </div>
+        </xpath>
         <!-- The last line break of the template pushed a blank second page when
              the invoice just fills the first one (2026-10-30). -->
         <xpath expr="//div[@id='right-elements']/../following-sibling::br[1]" position="replace"/>
