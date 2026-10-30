@@ -21,12 +21,53 @@
         <xpath expr="//t[@t-if='o.l10n_do_ecf_sign_date']/span" position="attributes">
             <attribute name="t-out">o._glecf_sign_date_text()</attribute>
         </xpath>
+        <!-- The last line break of the template pushed a blank second page when
+             the invoice just fills the first one (2026-10-30). -->
+        <xpath expr="//div[@id='right-elements']/../following-sibling::br[1]" position="replace"/>
+        <xpath expr="//span[@id='line_tax_ids']" position="attributes">
+            <attribute name="t-out">', '.join(tax.name for tax in line.tax_ids) if not ecf_representation else '%s %s' % (o.currency_id.symbol, '{0:,.2f}'.format(o._glecf_line_itbis(line)))</attribute>
+        </xpath>
+    </template>
+
+    <!-- After the withholdings, what is actually paid (2026-10-30).
+         o_total paints the row in the Boxed layout, and the amounts of this
+         table came out dark on dark, unreadable. -->
+    <template id="document_tax_totals_ecf" inherit_id="l10n_do_accounting.document_tax_totals">
+        <xpath expr="//tr[td[normalize-space()='Monto Gravado']]" position="attributes">
+            <attribute name="class" remove="o_total" separator=" "/>
+        </xpath>
+        <xpath expr="//tr[td/strong[normalize-space()='Total']]" position="attributes">
+            <attribute name="class" remove="o_total" separator=" "/>
+        </xpath>
+        <xpath expr="." position="inside">
+            <tr class="border-black" t-if="o.line_ids.filtered(lambda line: line.tax_line_id.amount &lt; 0)">
+                <td><strong>Total a pagar</strong></td>
+                <td class="text-end">
+                    <span class="text-nowrap" t-out="o.amount_total"
+                          t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                </td>
+            </tr>
+        </xpath>
+    </template>
+
+    <!-- Printed in Spanish whatever the language of the contact. -->
+    <template id="report_invoice_ecf" inherit_id="l10n_do_accounting.report_invoice">
+        <xpath expr="//t[@t-call='l10n_do_accounting.report_invoice_document_inherited']" position="attributes">
+            <attribute name="t-lang">o._glecf_report_lang() or lang</attribute>
+        </xpath>
     </template>
 
     <!-- The sequence expiry printed is the one sent to the DGII (in the test
          environment, the DGII's 31-12-2028), not the date copied onto the
          invoice when it was created. -->
     <template id="informations_ecf" inherit_id="l10n_do_accounting.informations">
+        <!-- A consumer with no identification: no empty «ID Cliente:» line. -->
+        <xpath expr="//span[@t-out=&quot;o.commercial_partner_id.vat or ''&quot;]/preceding-sibling::strong[1]" position="attributes">
+            <attribute name="t-if">vat_len</attribute>
+        </xpath>
+        <xpath expr="//span[@t-out=&quot;o.commercial_partner_id.vat or ''&quot;]/following-sibling::br[1]" position="attributes">
+            <attribute name="t-if">vat_len</attribute>
+        </xpath>
         <xpath expr="//span[@id='ecf_exp_date']" position="replace">
             <span id="ecf_exp_date" t-out="o._glecf_sequence_expiry_text()"/>
         </xpath>

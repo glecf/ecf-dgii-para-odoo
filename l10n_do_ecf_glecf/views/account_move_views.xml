@@ -43,7 +43,15 @@
                             string="Añadir el ITBIS de la factura original" class="btn btn-warning btn-sm"/>
                 </div>
             </xpath>
+            <!-- Placeholder from Odoo says «RFC» in Spanish. -->
+            <xpath expr="//field[@name='partner_id'][@widget='res_partner_many2one']" position="attributes">
+                <attribute name="placeholder">Buscar nombre o RNC...</attribute>
+            </xpath>
             <xpath expr="//div[@name='journal_div']" position="after">
+                <!-- Without this field on the form, the number typed for the first
+                     e-NCF was lost as soon as the date changed: the browser never
+                     sent it back to the server (2026-10-30). -->
+                <field name="l10n_do_fiscal_number" invisible="1"/>
                 <field name="glecf_state" widget="badge"
                        invisible="not glecf_state"
                        decoration-info="glecf_state in ('to_send', 'sent')"

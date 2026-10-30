@@ -16,6 +16,7 @@ from .ecf_builder import (
     PURCHASE_TYPES,
     SUPPORTED_TYPES,
     TEST_SEQUENCE_EXPIRY,
+    _origin,
     _sequence_expiry,
     build_ecf_data,
     ecf_type,
@@ -155,7 +156,60 @@ class AccountMove(models.Model):
             return ("in_invoice",)
         return ("out_invoice", "out_refund")
 
+    def _glecf_annulled_origin(self):
+        """The note that annulled the document this note modifies, or the
+        rejected document itself. The DGII refuses a note on either (code 615),
+        and the e-NCF of the note would be lost (2026-10-30)."""
+        self.ensure_one()
+        origin = self.l10n_do_origin_ncf
+        if not origin or ecf_type(self) not in ("33", "34"):
+            return self.browse()
+        same_company = [("company_id", "=", self.company_id.id), ("state", "=", "posted")]
+        return self.search(same_company + [
+            ("id", "!=", self.id),
+            ("l10n_do_origin_ncf", "=", origin),
+            ("l10n_do_ecf_modification_code", "=", "1"),
+            ("glecf_state", "!=", "rejected"),
+        ], limit=1) or self.search(same_company + [
+            ("l10n_do_fiscal_number", "=", origin),
+            ("glecf_state", "=", "rejected"),
+        ], limit=1)
+
+    def _glecf_report_lang(self):
+        """The printed e-CF goes in Spanish whatever the language of the contact:
+        new contacts often stay in English, and the invoice came out with English
+        titles and dates (2026-10-30)."""
+        self.ensure_one()
+        installed = dict(self.env["res.lang"].get_installed())
+        return next((code for code in ("es_DO", "es_419", "es_ES") if code in installed), False)
+
+    def _glecf_line_itbis(self, line):
+        """The ITBIS of a line for the printed e-CF. Withholdings do not count:
+        a line with its ITBIS withheld showed 0.00 (2026-10-30)."""
+        group = self.env.ref("account.%s_tax_group_itbis" % line.company_id.id)
+        taxes = line.tax_ids.filtered(lambda tax: tax.tax_group_id == group and tax.amount > 0)
+        price = line.price_unit * (1 - (line.discount or 0.0) / 100)
+        computed = taxes.compute_all(price, quantity=line.quantity)
+        return sum(tax["amount"] for tax in computed["taxes"])
+
     def _post(self, soft=True):
+        for move in self:
+            annulled = move._glecf_annulled_origin()
+            if annulled:
+                raise UserError(_(
+                    "%(ncf)s está anulado o rechazado (%(by)s). La DGII no acepta notas "
+                    "sobre él, y el número de esta nota se perdería."
+                ) % {
+                    "ncf": move.l10n_do_origin_ncf,
+                    "by": annulled.l10n_do_fiscal_number or annulled.name,
+                })
+            # Same rejection, same lost number (code 615, 2026-10-30).
+            origin = _origin(move) if ecf_type(move) in ("33", "34") else False
+            if origin and move.invoice_date and origin.invoice_date and move.invoice_date < origin.invoice_date:
+                raise UserError(_(
+                    "La fecha de esta nota no puede ser anterior a la de %(ncf)s (%(date)s): "
+                    "la DGII la rechazaría y el número se perdería."
+                ) % {"ncf": origin.l10n_do_fiscal_number, "date": origin.invoice_date.strftime("%d/%m/%Y")})
         # The first e-NCF of each type is written by hand. The form asks for it,
         # but nothing stopped posting without it: the invoice stayed posted with
         # no number and failed later, when it was sent (2026-10-30).
