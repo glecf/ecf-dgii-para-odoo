@@ -60,6 +60,17 @@
                                     string="Volver a conectar" class="btn-link"/>
                         </div>
                     </setting>
+                    <setting id="glecf_module_update" string="Hay una versión nueva del módulo"
+                             help="Trae correcciones y novedades. Tu copia no se actualiza sola."
+                             invisible="not glecf_module_update">
+                        <div class="mt8 text-warning">
+                            Ya está disponible la versión <field name="glecf_module_update" class="oe_inline"/>.
+                            <div>
+                                <a href="https://github.com/glecf/ecf-dgii-para-odoo/blob/18.0/docs/manual.md#actualizar-el-módulo"
+                                   target="_blank">Cómo actualizar</a>
+                            </div>
+                        </div>
+                    </setting>
                     <setting id="glecf_certificate" string="Estado ante la DGII"
                              help="Si la DGII ya tiene a tu empresa como emisor electrónico, y el certificado con el que GLECF firma."
                              invisible="not glecf_api_key">

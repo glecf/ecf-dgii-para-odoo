@@ -8,6 +8,8 @@ from urllib.parse import urlencode
 from odoo import _, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.http import request
+from odoo.modules.module import get_manifest
+from odoo.tools import parse_version
 
 from .glecf_client import GlecfClient, GlecfError
 
@@ -96,6 +98,16 @@ class ResCompany(models.Model):
     glecf_plan_usage = fields.Char(compute="_compute_glecf_plan_summary")
 
     glecf_sequences_to_check = fields.Integer(compute="_compute_glecf_sequences_to_check")
+    # The latest version of this module, as GLECF says. Copies do not update by
+    # themselves, so Settings says when there is a new one (2026-10-30).
+    glecf_module_latest = fields.Char(copy=False, readonly=True)
+    glecf_module_update = fields.Char(compute="_compute_glecf_module_update")
+
+    def _compute_glecf_module_update(self):
+        installed = parse_version(get_manifest("l10n_do_ecf_glecf").get("version", "0"))
+        for company in self:
+            latest = company.glecf_module_latest
+            company.glecf_module_update = latest if latest and parse_version(latest) > installed else False
 
     def _compute_glecf_plan_summary(self):
         for company in self:
@@ -153,10 +165,26 @@ class ResCompany(models.Model):
             # Another key may belong to another company: read it again.
             vals = dict(vals, glecf_account_name=False, glecf_account_rnc=False)
         res = super().write(vals)
+        if vals.get("l10n_do_ecf_issuer"):
+            self._glecf_use_documents()
         if vals.get("glecf_consent"):
             # What was waiting for the consent goes out now, not on the next pass.
             self.env.ref("l10n_do_ecf_glecf.ir_cron_glecf_sync").sudo()._trigger()
         return res
+
+    def _glecf_use_documents(self):
+        """An e-CF issuer needs its sales and purchases journals on fiscal
+        documents. It was a box to tick by hand on each journal, and without it
+        the invoice has no e-CF type (2026-10-30). Odoo does not let a journal
+        with entries change, so those stay as they are."""
+        journals = self.env["account.journal"].search([
+            ("company_id", "in", self.ids),
+            ("type", "in", ("sale", "purchase")),
+            ("l10n_latam_use_documents", "=", False),
+        ])
+        for journal in journals:
+            if not self.env["account.move"].search_count([("journal_id", "=", journal.id)], limit=1):
+                journal.l10n_latam_use_documents = True
 
     def _glecf_odoo_rnc(self):
         return "".join(char for char in (self.vat or "") if char.isdigit())
@@ -173,6 +201,8 @@ class ResCompany(models.Model):
             "glecf_account_rnc": account.get("rnc") or False,
         }
         values["glecf_account_checked"] = fields.Datetime.now()
+        if account.get("modulo_ultima_version"):
+            values["glecf_module_latest"] = account["modulo_ultima_version"]
         if account.get("emisor_electronico"):
             values["glecf_issuer_state"] = account["emisor_electronico"]
         if account.get("plan_label"):

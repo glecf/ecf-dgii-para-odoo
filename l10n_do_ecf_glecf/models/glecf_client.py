@@ -10,6 +10,7 @@ import logging
 import requests
 
 from odoo import _, release
+from odoo.modules.module import get_manifest
 
 _logger = logging.getLogger(__name__)
 
@@ -42,6 +43,9 @@ class GlecfClient:
         headers = {
             "Accept": "application/json",
             "User-Agent": "odoo-%s l10n_do_ecf_glecf" % release.version,
+            # GLECF answers with the latest version, for the notice in Settings:
+            # nobody's copy of the module updates by itself (2026-10-30).
+            "X-Module-Version": get_manifest("l10n_do_ecf_glecf").get("version", ""),
         }
         if self.api_key:
             headers["X-API-Key"] = self.api_key

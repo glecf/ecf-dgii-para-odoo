@@ -149,6 +149,18 @@ En la factura:
 Un e-CF rechazado no se puede publicar. La aprobación es opcional: si no la
 envías, la DGII lo da por aceptado cuando lo declaras en el 606.
 
+## Actualizar el módulo
+
+Tu copia del módulo no se actualiza sola. Cuando hay una versión nueva, en Ajustes
+> Facturación aparece el aviso «Hay una versión nueva del módulo». Para actualizar,
+quien administra tu servidor:
+
+1. Descarga la versión nueva, con `git pull` en la carpeta del módulo.
+2. Reinicia Odoo.
+3. En Aplicaciones, busca «e-CF DGII para Odoo» y pulsa **Actualizar**.
+
+Tus facturas y ajustes se conservan.
+
 ## Ayuda
 
 Escribe a soporte@glecf.com.
