@@ -166,10 +166,10 @@ class AccountMove(models.Model):
     # sin_direccion | no_aplica. Only a failed one can be sent again.
     glecf_approval_supplier = fields.Char(copy=False, readonly=True)
 
-    _sql_constraints = [
-        ("glecf_received_unique", "unique(company_id, glecf_received_id)",
-         "Este e-CF recibido ya está en Odoo."),
-    ]
+    _glecf_received_unique = models.Constraint(
+        "unique(company_id, glecf_received_id)",
+        "Este e-CF recibido ya está en Odoo.",
+    )
 
     # -- Import -----------------------------------------------------------------
 

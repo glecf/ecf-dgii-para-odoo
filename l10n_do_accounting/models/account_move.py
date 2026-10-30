@@ -2,14 +2,13 @@ import re
 from werkzeug import urls
 
 from odoo import models, fields, api, _
-from odoo.osv import expression
 from odoo.exceptions import ValidationError, UserError, AccessError
-from odoo.tools.sql import column_exists, create_column, drop_index, index_exists
+from odoo.fields import Command
 
 
 class AccountMove(models.Model):
     _inherit = "account.move"
-    _rec_names_search = ["l10n_do_fiscal_number"]
+    _rec_names_search = ["name", "partner_id.name", "ref", "l10n_do_fiscal_number"]
 
     _l10n_do_sequence_field = "l10n_do_fiscal_number"
     _l10n_do_sequence_fixed_regex = r"^(?P<prefix1>.*?)(?P<seq>\d{0,8})$"
@@ -124,80 +123,27 @@ class AccountMove(models.Model):
         "manually because a new expiration date was set on journal",
     )
 
-    _sql_constraints = [
-        (
-            "unique_l10n_do_fiscal_number_sales",
-            "",
-            "Another document with the same fiscal number already exists.",
-        ),
-        (
-            "unique_l10n_do_fiscal_number_purchase_manual",
-            "",
-            "Another document for the same partner with the same fiscal number already exists.",
-        ),
-        (
-            "unique_l10n_do_fiscal_number_purchase_internal",
-            "",
-            "Another document for the same partner with the same fiscal number already exists.",
-        ),
-    ]
-
-    def _auto_init(self):
-        if not index_exists(
-            self.env.cr, "account_move_unique_l10n_do_fiscal_number_sales"
-        ):
-            drop_index(
-                self.env.cr,
-                "account_move_unique_l10n_do_fiscal_number_purchase_manual",
-                self._table,
-            )
-            drop_index(
-                self.env.cr,
-                "account_move_unique_l10n_do_fiscal_number_purchase_internal",
-                self._table,
-            )
-
-            if not column_exists(self.env.cr, "account_move", "l10n_do_fiscal_number"):
-                create_column(
-                    self.env.cr, "account_move", "l10n_do_fiscal_number", "varchar"
-                )
-            if not column_exists(self.env.cr, "account_move", "l10n_latam_manual_document_number"):
-                create_column(
-                    self.env.cr, "account_move", "l10n_latam_manual_document_number", "varchar"
-                )
-
-            self.env.cr.execute(
-                """
-                CREATE UNIQUE INDEX account_move_unique_l10n_do_fiscal_number_sales
-                ON account_move(l10n_do_fiscal_number, company_id)
-                WHERE (l10n_latam_document_type_id IS NOT NULL
-                AND move_type NOT IN ('in_invoice', 'in_refund'))
-                AND l10n_do_fiscal_number <> '';
-                
-                CREATE UNIQUE INDEX account_move_unique_l10n_do_fiscal_number_purchase_manual
-                ON account_move(l10n_do_fiscal_number, commercial_partner_id, company_id)
-                WHERE (l10n_latam_document_type_id IS NOT NULL AND move_type IN ('in_invoice', 'in_refund')
-                AND l10n_latam_manual_document_number = 't')
-                AND l10n_do_fiscal_number <> '';
-                
-                CREATE UNIQUE INDEX account_move_unique_l10n_do_fiscal_number_purchase_internal
-                ON account_move(l10n_do_fiscal_number, company_id)
-                WHERE (l10n_latam_document_type_id IS NOT NULL AND move_type IN ('in_invoice', 'in_refund', 'in_receipt')
-                AND l10n_latam_manual_document_number = 'f')
-                AND l10n_do_fiscal_number <> '';
-            """
-            )
-        return super()._auto_init()
-
-    @api.model
-    def _name_search(self, name, domain=None, operator='ilike', limit=None, order=None):
-        if name:
-            domain = expression.AND([[
-                "|",
-                ("name", operator, name),
-                ("l10n_do_fiscal_number", operator, name),
-            ], domain])
-        return super()._name_search(name, domain, operator, limit, order)
+    _unique_l10n_do_fiscal_number_sales = models.UniqueIndex(
+        "(l10n_do_fiscal_number, company_id)"
+        " WHERE (l10n_latam_document_type_id IS NOT NULL"
+        " AND move_type NOT IN ('in_invoice', 'in_refund'))"
+        " AND l10n_do_fiscal_number <> ''",
+        "Another document with the same fiscal number already exists.",
+    )
+    _unique_l10n_do_fiscal_number_purchase_manual = models.UniqueIndex(
+        "(l10n_do_fiscal_number, commercial_partner_id, company_id)"
+        " WHERE (l10n_latam_document_type_id IS NOT NULL AND move_type IN ('in_invoice', 'in_refund')"
+        " AND l10n_latam_manual_document_number = 't')"
+        " AND l10n_do_fiscal_number <> ''",
+        "Another document for the same partner with the same fiscal number already exists.",
+    )
+    _unique_l10n_do_fiscal_number_purchase_internal = models.UniqueIndex(
+        "(l10n_do_fiscal_number, company_id)"
+        " WHERE (l10n_latam_document_type_id IS NOT NULL AND move_type IN ('in_invoice', 'in_refund', 'in_receipt')"
+        " AND l10n_latam_manual_document_number = 'f')"
+        " AND l10n_do_fiscal_number <> ''",
+        "Another document for the same partner with the same fiscal number already exists.",
+    )
 
     def _l10n_do_is_new_expiration_date(self):
         self.ensure_one()
@@ -571,35 +517,34 @@ class AccountMove(models.Model):
 
         return super(AccountMove, self)._onchange_partner_id()
 
-    def _reverse_move_vals(self, default_values, cancel=True):
+    def _reverse_moves(self, default_values_list=None, cancel=False):
+        # Odoo 19 removed `_reverse_move_vals`: the reversal is now a copy of the
+        # move, so the fiscal data goes in its default values (2026-10-30).
         ctx = self.env.context
-        amount = ctx.get("amount")
-        percentage = ctx.get("percentage")
+        default_values_list = default_values_list or [{} for _move in self]
+        for move, values in zip(self, default_values_list):
+            if move.country_code == "DO":
+                values["l10n_do_origin_ncf"] = move.l10n_do_fiscal_number or move.ref
+                values["l10n_do_ecf_modification_code"] = ctx.get("l10n_do_ecf_modification_code")
+
+        reversals = super()._reverse_moves(default_values_list, cancel)
+
         refund_type = ctx.get("refund_type")
-        reason = ctx.get("reason")
-        l10n_do_ecf_modification_code = ctx.get("l10n_do_ecf_modification_code")
-
-        res = super(AccountMove, self)._reverse_move_vals(
-            default_values=default_values, cancel=cancel
-        )
-        if self.country_code != "DO":
-            return res
-
-        if self.country_code == "DO":
-            res["l10n_do_origin_ncf"] = self.l10n_do_fiscal_number or self.ref
-            res["l10n_do_ecf_modification_code"] = l10n_do_ecf_modification_code
-
-        if refund_type in ("percentage", "fixed_amount"):
+        if refund_type not in ("percentage", "fixed_amount"):
+            return reversals
+        for move, reversal in zip(self, reversals):
+            if move.country_code != "DO":
+                continue
             price_unit = (
-                amount
+                ctx.get("amount")
                 if refund_type == "fixed_amount"
-                else self.amount_untaxed * (percentage / 100)
+                else move.amount_untaxed * (ctx.get("percentage") / 100)
             )
-            res["line_ids"] = False
-            res["invoice_line_ids"] = [
-                (0, 0, {"name": reason or _("Refund"), "price_unit": price_unit})
-            ]
-        return res
+            reversal.invoice_line_ids = [Command.clear(), Command.create({
+                "name": ctx.get("reason") or _("Refund"),
+                "price_unit": price_unit,
+            })]
+        return reversals
 
     @api.depends("l10n_latam_document_type_id", "journal_id")
     def _compute_l10n_latam_manual_document_number(self):
