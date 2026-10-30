@@ -85,8 +85,8 @@ class AccountJournal(models.Model):
 
         if not self.company_id.vat:
             action = self.env.ref("base.action_res_company_form")
-            msg = _("Cannot create chart of account until you configure your VAT.")
-            raise RedirectWarning(msg, action.id, _("Go to Companies"))
+            msg = _("No se puede crear el plan de cuentas hasta poner el RNC de la empresa.")
+            raise RedirectWarning(msg, action.id, _("Ir a Empresas"))
 
         # Get all the ncf_types values from the nested dictionary, remove duplicates and
         # convert it into a list

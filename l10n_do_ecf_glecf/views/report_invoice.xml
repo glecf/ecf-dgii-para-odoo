@@ -21,15 +21,26 @@
         <xpath expr="//t[@t-if='o.l10n_do_ecf_sign_date']/span" position="attributes">
             <attribute name="t-out">o._glecf_sign_date_text()</attribute>
         </xpath>
+        <!-- The last line break of the template pushed a blank second page when
+             the invoice just fills the first one (2026-10-30). -->
+        <xpath expr="//div[@id='right-elements']/../following-sibling::br[1]" position="replace"/>
         <xpath expr="//span[@id='line_tax_ids']" position="attributes">
             <attribute name="t-out">', '.join(tax.name for tax in line.tax_ids) if not ecf_representation else '%s %s' % (o.currency_id.symbol, '{0:,.2f}'.format(o._glecf_line_itbis(line)))</attribute>
         </xpath>
     </template>
 
-    <!-- After the withholdings, what is actually paid (2026-10-30). -->
+    <!-- After the withholdings, what is actually paid (2026-10-30).
+         o_total paints the row in the Boxed layout, and the amounts of this
+         table came out dark on dark, unreadable. -->
     <template id="document_tax_totals_ecf" inherit_id="l10n_do_accounting.document_tax_totals">
+        <xpath expr="//tr[td[normalize-space()='Monto Gravado']]" position="attributes">
+            <attribute name="class" remove="o_total" separator=" "/>
+        </xpath>
+        <xpath expr="//tr[td/strong[normalize-space()='Total']]" position="attributes">
+            <attribute name="class" remove="o_total" separator=" "/>
+        </xpath>
         <xpath expr="." position="inside">
-            <tr class="border-black o_total" t-if="o.line_ids.filtered(lambda line: line.tax_line_id.amount &lt; 0)">
+            <tr class="border-black" t-if="o.line_ids.filtered(lambda line: line.tax_line_id.amount &lt; 0)">
                 <td><strong>Total a pagar</strong></td>
                 <td class="text-end">
                     <span class="text-nowrap" t-out="o.amount_total"
