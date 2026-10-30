@@ -30,6 +30,11 @@
                     Al confirmar, este documento se enviará a la DGII como e-CF.
                     Ya aceptado no se puede borrar: se corrige con una nota de crédito o de débito.
                 </div>
+                <!-- In the system, not on the printed invoice (Jorge, 2026-10-30). -->
+                <div class="alert alert-warning" role="alert"
+                     invisible="state != 'posted' or glecf_state not in ('error', 'rejected', 'review')">
+                    Este e-CF no está aceptado por la DGII: no tiene valor fiscal.
+                </div>
                 <div class="alert alert-warning" role="alert"
                      invisible="state != 'posted' or glecf_state != 'to_send' or glecf_consent">
                     Este e-CF no saldrá a la DGII hasta que aceptes «Datos que se envían a GLECF»
