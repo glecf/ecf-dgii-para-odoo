@@ -248,7 +248,7 @@ class AccountMove(models.Model):
                 )
         # Back in draft, nothing must go out until it is posted again.
         self.filtered(lambda m: m.glecf_state in ("to_send", "error")).write({
-            "glecf_state": False, "glecf_requested": False,
+            "glecf_state": False, "glecf_requested": False, "glecf_message": False,
         })
         return super().button_draft()
 
@@ -291,11 +291,12 @@ class AccountMove(models.Model):
 
     def action_glecf_correct(self):
         """«Corregir la factura»: back to draft a rejected e-CF whose number
-        can be used again. The Dominican localization only lets cancelled
-        invoices go back to draft, and cancelling would void the number."""
-        moves = self.filtered(
-            lambda m: m.state == "posted" and m.glecf_state == "rejected" and m.glecf_ncf_reusable
-        )
+        can be used again, or one that never left because of a wrong line
+        (2026-10-30). The Dominican localization only lets cancelled invoices
+        go back to draft, and cancelling would void the number."""
+        moves = self.filtered(lambda m: m.state == "posted" and (
+            m.glecf_state == "error" or (m.glecf_state == "rejected" and m.glecf_ncf_reusable)
+        ))
         moves.write({"glecf_ncf_reusable": False})
         return moves.button_draft()
 

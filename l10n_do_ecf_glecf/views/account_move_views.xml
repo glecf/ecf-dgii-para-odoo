@@ -16,11 +16,16 @@
                         groups="account.group_account_invoice"/>
                 <button name="action_glecf_correct" type="object" string="Corregir la factura"
                         class="btn-primary"
-                        invisible="state != 'posted' or glecf_state != 'rejected' or not glecf_ncf_reusable"
+                        invisible="state != 'posted' or (glecf_state != 'error' and (glecf_state != 'rejected' or not glecf_ncf_reusable))"
                         groups="account.group_account_invoice"/>
                 <button name="action_glecf_refresh" type="object" string="Ver respuesta de la DGII"
                         invisible="glecf_state != 'sent'"
                         groups="account.group_account_invoice"/>
+            </xpath>
+            <!-- A fiscal draft that was never posted cannot be cancelled, only
+                 deleted: the button answered with an error (2026-10-30). -->
+            <xpath expr="//header/button[@name='button_cancel'][@data-hotkey='x'][2]" position="attributes">
+                <attribute name="invisible">not id or state != 'draft' or move_type == 'entry' or (country_code == 'DO' and l10n_latam_use_documents and not posted_before)</attribute>
             </xpath>
             <xpath expr="//sheet/*[1]" position="before">
                 <field name="glecf_refund_missing_tax" invisible="1"/>

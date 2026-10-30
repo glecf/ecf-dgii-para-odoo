@@ -97,7 +97,7 @@ cambia solo en la pantalla, sin recargar.
 | Aceptado | Listo |
 | Aceptado con observaciones | Válido; lee el mensaje |
 | Rechazado | Si sale **Corregir la factura**, púlsalo, corrige y confírmala otra vez: va con el mismo e-NCF. Si no, el número ya se usó: cancélala y créala de nuevo |
-| No enviado | Falta un dato: el mensaje dice cuál |
+| No enviado | Falta un dato: el mensaje dice cuál. Si es de la factura, pulsa **Corregir la factura**, corrígela y confírmala otra vez. Si es de Ajustes, arréglalo y pulsa **Enviar a la DGII** |
 | Requiere revisión | Lee el mensaje. Si sale **Reintentar envío**, no llegó a la DGII: arregla lo que dice y púlsalo. Si no, escribe a soporte@glecf.com |
 
 Si la DGII dice que el certificado **no está delegado**, el administrador de
