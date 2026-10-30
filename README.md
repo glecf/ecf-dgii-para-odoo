@@ -48,7 +48,20 @@ próxima versión.
 
 ## Instalación
 
-Necesitas Odoo 17 y la localización dominicana:
+### Odoo 18
+
+La localización dominicana ya viene incluida: solo necesitas este repositorio.
+
+```bash
+git clone -b 18.0 https://github.com/glecf/ecf-dgii-para-odoo.git
+```
+
+Añade la carpeta al `addons_path` de Odoo, actualiza la lista de aplicaciones e
+instala **e-CF DGII para Odoo**.
+
+### Odoo 17
+
+Necesitas también la localización dominicana:
 
 ```bash
 git clone -b 17.0 https://github.com/indexa-git/l10n-dominicana.git
