@@ -13,8 +13,10 @@ en Odoo como **comprobantes fiscales electrónicos (e-CF)**, tal como exige la
 > **En mejora continua.** El módulo funciona y se sigue ampliando. El manual,
 > con capturas: [docs/manual.md](docs/manual.md).
 
-Funciona en **Odoo 17 Community y Enterprise**, sobre la localización
-dominicana `l10n_do_accounting`. La firma y el envío a la DGII los hace
+Funciona en **Odoo 18 Community y Enterprise**, con la localización dominicana
+incluida. ¿Usas Odoo 17? Está en la rama
+[17.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/17.0). La firma y el
+envío a la DGII los hace
 [GLECF](https://glecf.com). Tu certificado digital se sube desde Odoo, pero
 queda guardado en GLECF, no en Odoo.
 
@@ -47,15 +49,17 @@ próxima versión.
 
 ## Instalación
 
-Necesitas Odoo 17 y la localización dominicana:
+Necesitas Odoo 18. La localización dominicana ya viene en este repositorio:
 
 ```bash
-git clone -b 17.0 https://github.com/indexa-git/l10n-dominicana.git
-git clone -b 17.0 https://github.com/glecf/ecf-dgii-para-odoo.git
+git clone -b 18.0 https://github.com/glecf/ecf-dgii-para-odoo.git
 ```
 
-Añade las dos carpetas al `addons_path` de Odoo, actualiza la lista de
-aplicaciones e instala **e-CF DGII para Odoo**.
+Añade esa carpeta al `addons_path` de Odoo, actualiza la lista de aplicaciones e
+instala **e-CF DGII para Odoo**. La localización se instala con él.
+
+Si el PDF de la factura sale sin QR o sin diseño, mira la sección «La factura
+impresa» del [manual](docs/manual.md).
 
 ## Puesta en marcha
 
@@ -112,4 +116,8 @@ Escribe a soporte@glecf.com.
 
 ## Licencia
 
-Odoo Proprietary License v1.0 (ver `LICENSE` y `COPYRIGHT`).
+El módulo `l10n_do_ecf_glecf`: Odoo Proprietary License v1.0 (ver `LICENSE` y
+`COPYRIGHT`).
+
+La localización `l10n_do_accounting` es código libre de iterativo LLC e Indexa,
+adaptado a Odoo 18, bajo su licencia LGPL-3 (ver `l10n_do_accounting/LICENSE`).
