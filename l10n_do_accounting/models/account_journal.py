@@ -210,8 +210,10 @@ class AccountJournalDocumentType(models.Model):
     _name = "l10n_do.account.journal.document_type"
     _description = "Journal Document Type"
 
+    # Odoo deletes the journals of the generic chart when the company moves to
+    # the Dominican one (2026-11-01).
     journal_id = fields.Many2one(
-        "account.journal", "Journal", required=True, readonly=True
+        "account.journal", "Journal", required=True, readonly=True, ondelete="cascade"
     )
     l10n_latam_document_type_id = fields.Many2one(
         "l10n_latam.document.type", "Document type", required=True, readonly=True
