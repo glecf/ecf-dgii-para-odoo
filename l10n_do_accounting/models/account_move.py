@@ -597,6 +597,8 @@ class AccountMove(models.Model):
             )
 
     def _post(self, soft=True):
+        # On create the default of Odoo wins over the compute.
+        self._compute_l10n_do_purchase_type()
         res = super()._post(soft)
 
         l10n_do_invoices = self.filtered(
