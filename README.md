@@ -14,7 +14,8 @@ en Odoo como **comprobantes fiscales electrónicos (e-CF)**, tal como exige la
 > con capturas: [docs/manual.md](docs/manual.md).
 
 Funciona en **Odoo 18 Community y Enterprise**, con la localización dominicana
-incluida. ¿Usas otra versión? Odoo 19 está en la rama
+incluida. ¿Usas otra versión? Odoo 20 está en la rama
+[20.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/20.0), Odoo 19 en la
 [19.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/19.0) y Odoo 17 en la
 [17.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/17.0). La firma y el
 envío a la DGII los hace
