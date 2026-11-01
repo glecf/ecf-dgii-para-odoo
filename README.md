@@ -14,7 +14,8 @@ en Odoo como **comprobantes fiscales electrónicos (e-CF)**, tal como exige la
 > con capturas: [docs/manual.md](docs/manual.md).
 
 Funciona en **Odoo 18 Community y Enterprise**, con la localización dominicana
-incluida. ¿Usas Odoo 17? Está en la rama
+incluida. ¿Usas otra versión? Odoo 19 está en la rama
+[19.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/19.0) y Odoo 17 en la
 [17.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/17.0). La firma y el
 envío a la DGII los hace
 [GLECF](https://glecf.com). Tu certificado digital se sube desde Odoo, pero
