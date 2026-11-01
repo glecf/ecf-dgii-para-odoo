@@ -13,8 +13,9 @@ en Odoo como **comprobantes fiscales electrónicos (e-CF)**, tal como exige la
 > **En mejora continua.** El módulo funciona y se sigue ampliando. El manual,
 > con capturas: [docs/manual.md](docs/manual.md).
 
-Funciona en **Odoo 19 Community y Enterprise**, con la localización dominicana
-incluida. ¿Usas otra versión? Odoo 18 está en la rama
+Funciona en **Odoo 20 Community y Enterprise**, con la localización dominicana
+incluida. ¿Usas otra versión? Odoo 19 está en la rama
+[19.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/19.0), Odoo 18 en la
 [18.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/18.0) y Odoo 17 en la
 [17.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/17.0). La firma y el
 envío a la DGII los hace
@@ -50,10 +51,10 @@ próxima versión.
 
 ## Instalación
 
-Necesitas Odoo 19. La localización dominicana ya viene en este repositorio:
+Necesitas Odoo 20. La localización dominicana ya viene en este repositorio:
 
 ```bash
-git clone -b 19.0 https://github.com/glecf/ecf-dgii-para-odoo.git
+git clone -b 20.0 https://github.com/glecf/ecf-dgii-para-odoo.git
 ```
 
 Añade esa carpeta al `addons_path` de Odoo, actualiza la lista de aplicaciones e
@@ -121,4 +122,4 @@ El módulo `l10n_do_ecf_glecf`: Odoo Proprietary License v1.0 (ver `LICENSE` y
 `COPYRIGHT`).
 
 La localización `l10n_do_accounting` es código libre de iterativo LLC e Indexa,
-adaptado a Odoo 19, bajo su licencia LGPL-3 (ver `l10n_do_accounting/LICENSE`).
+adaptado a Odoo 20, bajo su licencia LGPL-3 (ver `l10n_do_accounting/LICENSE`).
