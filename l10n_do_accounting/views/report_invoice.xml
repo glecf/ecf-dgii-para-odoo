@@ -315,10 +315,8 @@
 
         <xpath expr="//div[@id='total']/div/table/t[@t-call='account.document_tax_totals']"
                position="replace">
-            <t t-if="o.tax_totals" t-call="l10n_do_accounting.document_tax_totals">
-                <t t-set="tax_totals" t-value="o.tax_totals"/>
-                <t t-set="currency" t-value="o.currency_id"/>
-            </t>
+            <t t-if="o.tax_totals" t-call="l10n_do_accounting.document_tax_totals"
+               tax_totals="o.tax_totals" currency="o.currency_id"/>
         </xpath>
 
     </template>
