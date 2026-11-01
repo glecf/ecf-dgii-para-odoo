@@ -186,11 +186,40 @@ class AccountMove(models.Model):
     def _glecf_line_itbis(self, line):
         """The ITBIS of a line for the printed e-CF. Withholdings do not count:
         a line with its ITBIS withheld showed 0.00 (2026-10-30)."""
+        if self._glecf_printed_type() == "43":
+            return 0.0
         group = self.env.ref("account.%s_tax_group_itbis" % line.company_id.id)
         taxes = line.tax_ids.filtered(lambda tax: tax.tax_group_id == group and tax.amount > 0)
         price = line.price_unit * (1 - (line.discount or 0.0) / 100)
         computed = taxes.compute_all(price, quantity=line.quantity)
         return sum(tax["amount"] for tax in computed["taxes"])
+
+    def _glecf_printed_type(self):
+        """The e-CF type of the document, empty when it is not an e-CF."""
+        prefix = self.l10n_latam_document_type_id.doc_code_prefix or ""
+        return prefix[1:] if prefix[:1] == "E" else ""
+
+    def _glecf_report_amounts(self):
+        """Monto Gravado and Monto Exento for the printed e-CF, the ones sent
+        to the DGII. A line with only a withholding counted as neither, and a
+        minor expense printed as taxed what goes as exempt (2026-11-01)."""
+        self.ensure_one()
+        tipo = self._glecf_printed_type()
+        lines = self.invoice_line_ids.filtered(lambda line: line.display_type == "product")
+        if tipo == "43":
+            return {"taxed": 0.0, "exempt": sum(lines.mapped("price_total"))}
+        if tipo == "47":
+            return {"taxed": 0.0, "exempt": sum(lines.mapped("price_subtotal"))}
+        if tipo == "46":
+            return {"taxed": sum(lines.mapped("price_subtotal")), "exempt": 0.0}
+        group = self.env.ref("account.%s_tax_group_itbis" % self.company_id.id)
+        taxed = lines.filtered(
+            lambda line: line.tax_ids.filtered(lambda tax: tax.tax_group_id == group and tax.amount > 0)
+        )
+        return {
+            "taxed": sum(taxed.mapped("price_subtotal")),
+            "exempt": sum((lines - taxed).mapped("price_subtotal")),
+        }
 
     def _post(self, soft=True):
         for move in self:
