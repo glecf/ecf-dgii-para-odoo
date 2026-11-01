@@ -391,11 +391,7 @@ def _items_and_totals(move, tipo):
 
 
 def _tax_groups(move):
-    company = move.company_id
-    groups = {
-        name: move.env.ref("account.%s_tax_group_%s" % (company.id, name), raise_if_not_found=False)
-        for name in ("itbis", "isr")
-    }
+    groups = move.env["account.tax"]._l10n_do_tax_groups(move.company_id)
     if not groups["itbis"]:
         # Without the Dominican chart of accounts every tax would look like
         # "something other than ITBIS", with a confusing message.
@@ -408,7 +404,7 @@ def _tax_groups(move):
 
 def _is_withholding(tax, groups):
     """Odoo keeps withholdings as negative ITBIS or ISR taxes."""
-    return tax.amount < 0 and tax.tax_group_id in (groups["itbis"], groups["isr"]) and bool(tax.tax_group_id)
+    return tax.amount < 0 and tax.tax_group_id in groups["itbis"] | groups["isr"]
 
 
 def _line_indicator(move, line, tipo, groups):
@@ -420,12 +416,12 @@ def _line_indicator(move, line, tipo, groups):
               "Solo las llevan las compras (E41) y los pagos al exterior (E47).")
             % {"doc": move.name, "line": line.name, "taxes": ", ".join(withholdings.mapped("name"))}
         )
-    if tipo == "47" and withholdings.filtered(lambda tax: tax.tax_group_id == itbis_group):
+    if tipo == "47" and withholdings.filtered(lambda tax: tax.tax_group_id in itbis_group):
         raise UserError(
             _("%(doc)s: un pago al exterior (E47) solo retiene ISR, no ITBIS (línea «%(line)s»).")
             % {"doc": move.name, "line": line.name}
         )
-    itbis = line.tax_ids.filtered(lambda tax: itbis_group and tax.tax_group_id == itbis_group) - withholdings
+    itbis = line.tax_ids.filtered(lambda tax: tax.tax_group_id in itbis_group) - withholdings
     others = line.tax_ids - itbis - withholdings
     if others.filtered(lambda tax: tax.amount):
         raise UserError(
@@ -481,7 +477,7 @@ def _withholding(move, line, tipo, groups, indicator, service, withheld):
         for result in computed:
             tax = taxes.filtered(lambda t: t.id == result["id"])
             if tax:
-                key = "itbis" if tax.tax_group_id == groups["itbis"] else "isr"
+                key = "itbis" if tax.tax_group_id in groups["itbis"] else "isr"
                 amounts[key] += abs(result["amount"])
     amounts = {key: currency.round(value) for key, value in amounts.items()}
     if indicator == EXEMPT and not float_is_zero(amounts["itbis"], precision_digits=2):
@@ -513,7 +509,7 @@ def _itbis_amounts(move, itbis_group):
     amounts = {"1": 0.0, "2": 0.0}
     for line in move.line_ids.filtered(lambda line: line.tax_line_id):
         tax = line.tax_line_id
-        if itbis_group and tax.tax_group_id == itbis_group and tax.amount in ITBIS_INDICATORS:
+        if tax.tax_group_id in itbis_group and tax.amount in ITBIS_INDICATORS:
             amounts[ITBIS_INDICATORS[tax.amount]] += abs(line.amount_currency)
     return {key: move.currency_id.round(value) for key, value in amounts.items()}
 

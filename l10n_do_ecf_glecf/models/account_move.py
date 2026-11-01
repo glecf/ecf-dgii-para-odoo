@@ -1,4 +1,3 @@
-import base64
 import logging
 import re
 import time
@@ -10,6 +9,7 @@ from psycopg2.errors import SerializationFailure
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools.binary import BinaryBytes
 
 from .ecf_builder import (
     DR_TZ,
@@ -188,8 +188,8 @@ class AccountMove(models.Model):
         a line with its ITBIS withheld showed 0.00 (2026-10-30)."""
         if self._glecf_printed_type() == "43":
             return 0.0
-        group = self.env.ref("account.%s_tax_group_itbis" % line.company_id.id)
-        taxes = line.tax_ids.filtered(lambda tax: tax.tax_group_id == group and tax.amount > 0)
+        group = self.env["account.tax"]._l10n_do_tax_groups(line.company_id)["itbis"]
+        taxes = line.tax_ids.filtered(lambda tax: tax.tax_group_id in group and tax.amount > 0)
         price = line.price_unit * (1 - (line.discount or 0.0) / 100)
         computed = taxes.compute_all(price, quantity=line.quantity)
         return sum(tax["amount"] for tax in computed["taxes"])
@@ -212,9 +212,9 @@ class AccountMove(models.Model):
             return {"taxed": 0.0, "exempt": sum(lines.mapped("price_subtotal"))}
         if tipo == "46":
             return {"taxed": sum(lines.mapped("price_subtotal")), "exempt": 0.0}
-        group = self.env.ref("account.%s_tax_group_itbis" % self.company_id.id)
+        group = self.env["account.tax"]._l10n_do_tax_groups(self.company_id)["itbis"]
         taxed = lines.filtered(
-            lambda line: line.tax_ids.filtered(lambda tax: tax.tax_group_id == group and tax.amount > 0)
+            lambda line: line.tax_ids.filtered(lambda tax: tax.tax_group_id in group and tax.amount > 0)
         )
         return {
             "taxed": sum(taxed.mapped("price_subtotal")),
@@ -338,7 +338,7 @@ class AccountMove(models.Model):
         # The e-NCF goes in the key: a copy of this database (with the same
         # uuid) or a new number on the same invoice never takes the document
         # of another invoice.
-        db_uuid = self.env["ir.config_parameter"].sudo().get_param("database.uuid", "")
+        db_uuid = self.env["ir.config_parameter"].sudo().get_str("database.uuid")
         return "odoo-%s-%s-%s" % (db_uuid.replace("-", "")[:12], self.id, self.l10n_do_fiscal_number)
 
     def _glecf_send(self):
@@ -454,7 +454,7 @@ class AccountMove(models.Model):
         if sign_date:
             values["l10n_do_ecf_sign_date"] = sign_date
         if document.get("xml_signed"):
-            values["l10n_do_ecf_edi_file"] = base64.b64encode(document["xml_signed"].encode())
+            values["l10n_do_ecf_edi_file"] = BinaryBytes(document["xml_signed"].encode())
             values["l10n_do_ecf_edi_file_name"] = "%s.xml" % self.l10n_do_fiscal_number
         self.write(values)
 

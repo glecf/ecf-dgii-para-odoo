@@ -17,7 +17,6 @@ Rules, from what Odoo does in other countries and what the DGII asks:
   without guessing a link.
 """
 
-import base64
 import logging
 from datetime import datetime
 
@@ -25,6 +24,7 @@ from lxml import etree
 
 from odoo import _, fields, models
 from odoo.exceptions import UserError
+from odoo.tools.binary import BinaryBytes
 
 _logger = logging.getLogger(__name__)
 
@@ -302,12 +302,12 @@ class AccountMove(models.Model):
             return
         filename = "%s%s.xml" % (item.get("rnc_emisor") or "", item.get("encf") or item["id"])
         move.write({
-            "l10n_do_ecf_edi_file": base64.b64encode(xml.encode("utf-8")),
+            "l10n_do_ecf_edi_file": BinaryBytes(xml.encode("utf-8")),
             "l10n_do_ecf_edi_file_name": filename,
         })
         self.env["ir.attachment"].create({
             "name": filename,
-            "datas": base64.b64encode(xml.encode("utf-8")),
+            "raw": xml.encode("utf-8"),
             "res_model": "account.move",
             "res_id": move.id,
             "mimetype": "application/xml",

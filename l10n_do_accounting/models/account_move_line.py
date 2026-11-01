@@ -20,9 +20,11 @@ class AccountMoveLine(models.Model):
                 line.l10n_do_itbis_amount = False
 
             if line.move_id.is_ecf_invoice:
+                group_itbis = self.env["account.tax"]._l10n_do_tax_groups(
+                    line.company_id
+                )["itbis"]
                 line_itbis_taxes = line.tax_ids.filtered(
-                    lambda t: t.tax_group_id
-                    == self.env.ref("account.%s_tax_group_itbis" % line.company_id.id)
+                    lambda t: t.amount > 0 and t.tax_group_id in group_itbis
                 )
                 price_unit = line.price_unit
                 if line.discount:
@@ -36,20 +38,17 @@ class AccountMoveLine(models.Model):
                 )
 
     def _get_l10n_do_line_amounts(self):
-        group_itbis = self.env.ref("account.%s_tax_group_itbis" % self.company_id.id)
-        group_isr = self.env.ref("account.%s_tax_group_isr" % self.company_id.id)
+        groups = self.env["account.tax"]._l10n_do_tax_groups(self.company_id)
+        group_itbis = groups["itbis"]
+        group_isr = groups["isr"]
 
         tax_lines = self.filtered(
-            lambda x: x.tax_group_id.id
-            in [
-                group_itbis.id,
-                group_isr.id,
-            ]
+            lambda x: x.tax_group_id in group_itbis | group_isr
         )
         itbis_tax_lines = tax_lines.filtered(
-            lambda line: line.tax_group_id == group_itbis
+            lambda line: line.tax_group_id in group_itbis
         )
-        isr_tax_lines = tax_lines.filtered(lambda line: line.tax_group_id == group_isr)
+        isr_tax_lines = tax_lines.filtered(lambda line: line.tax_group_id in group_isr)
 
         invoice_line_ids = self.filtered(lambda x: x.display_type == "product")
         taxed_lines = invoice_line_ids.filtered(
@@ -59,10 +58,10 @@ class AccountMoveLine(models.Model):
             lambda x: not x.tax_ids or any(tax for tax in x.tax_ids if not tax.amount)
         )
         itbis_taxed_lines = taxed_lines.filtered(
-            lambda line: group_itbis in line.tax_ids.mapped("tax_group_id")
+            lambda line: group_itbis & line.tax_ids.mapped("tax_group_id")
         )
         isr_taxed_lines = taxed_lines.filtered(
-            lambda line: group_isr in line.tax_ids.mapped("tax_group_id")
+            lambda line: group_isr & line.tax_ids.mapped("tax_group_id")
         )
 
         itbis_tax_amount_map = {

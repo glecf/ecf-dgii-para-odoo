@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Odoo 20 brings its own E31 to E34. They would show next to ours, so
+         they stay off while this module is installed (2026-11-01). They are
+         noupdate records: a plain record here would be skipped on update. -->
+    <function model="l10n_latam.document.type" name="write" eval="[
+        [ref('l10n_do.ecf_31'), ref('l10n_do.ecf_32'), ref('l10n_do.ecf_33'), ref('l10n_do.ecf_34')],
+        {'active': False},
+    ]"/>
+</odoo>

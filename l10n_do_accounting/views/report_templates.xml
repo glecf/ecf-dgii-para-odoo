@@ -8,38 +8,9 @@
         </xpath>
     </template>
 
-    <template id="external_layout_striped_inherited" inherit_id="web.external_layout_striped">
-        <xpath expr="//div[@name='company_address']" position="attributes">
-            <attribute name="t-if">doc_model != "account.move" or (doc_model == "account.move" and o.country_code != "DO")</attribute>
-        </xpath>
-    </template>
-    <template id="external_layout_boxed_inherited" inherit_id="web.external_layout_boxed">
-        <xpath expr="//div[@name='company_address']" position="attributes">
-            <attribute name="t-if">doc_model != "account.move" or (doc_model == "account.move" and o.country_code != "DO")</attribute>
-        </xpath>
-    </template>
-    <template id="external_layout_bold_inherited" inherit_id="web.external_layout_bold">
-        <xpath expr="//div[@name='company_address']" position="attributes">
-            <attribute name="t-if">doc_model != "account.move" or (doc_model == "account.move" and o.country_code != "DO")</attribute>
-        </xpath>
-    </template>
-    <template id="external_layout_standard_inherited" inherit_id="web.external_layout_standard">
-        <xpath expr="//div[@name='company_address']" position="attributes">
-            <attribute name="t-if">doc_model != "account.move" or (doc_model == "account.move" and o.country_code != "DO")</attribute>
-        </xpath>
-    </template>
-    <template id="external_layout_folder_inherited" inherit_id="web.external_layout_folder">
-        <xpath expr="//div[@name='company_address']" position="attributes">
-            <attribute name="t-if">doc_model != "account.move" or (doc_model == "account.move" and o.country_code != "DO")</attribute>
-        </xpath>
-    </template>
-    <template id="external_layout_wave_inherited" inherit_id="web.external_layout_wave">
-        <xpath expr="//div[@name='company_address']" position="attributes">
-            <attribute name="t-if">doc_model != "account.move" or (doc_model == "account.move" and o.country_code != "DO")</attribute>
-        </xpath>
-    </template>
-    <template id="external_layout_bubble_inherited" inherit_id="web.external_layout_bubble">
-        <xpath expr="//div[@name='company_address']" position="attributes">
+    <!-- Odoo 20 has one list for the company address, in every layout. -->
+    <template id="company_address_list_inherited" inherit_id="web.company_address_list">
+        <xpath expr="//ul[@name='company_address_list']" position="attributes">
             <attribute name="t-if">doc_model != "account.move" or (doc_model == "account.move" and o.country_code != "DO")</attribute>
         </xpath>
     </template>

@@ -231,7 +231,7 @@ class ResCompany(models.Model):
         state = secrets.token_urlsafe(24)
         verifier = secrets.token_urlsafe(48)
         redirect_uri = _base_url(self).rstrip("/") + CONNECT_PATH
-        params.set_param(CONNECT_PARAM + state, json.dumps({
+        params.set_str(CONNECT_PARAM + state, json.dumps({
             "company_id": self.id,
             "uid": self.env.uid,
             "verifier": verifier,

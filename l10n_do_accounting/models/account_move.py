@@ -3,6 +3,7 @@ from werkzeug import urls
 
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError, AccessError
+from odoo.tools import SQL
 
 
 class AccountMove(models.Model):
@@ -59,6 +60,11 @@ class AccountMove(models.Model):
         copy=False,
     )
 
+    # The 606 of Odoo 20 Enterprise reads this field, and it asks the same as
+    # ours, which comes filled from the contact (2026-11-01).
+    l10n_do_purchase_type = fields.Selection(
+        compute="_compute_l10n_do_purchase_type", store=True, readonly=False
+    )
     l10n_do_income_type = fields.Selection(
         selection="_get_l10n_do_income_type",
         string="Income Type",
@@ -234,6 +240,15 @@ class AccountMove(models.Model):
         return self.line_ids.filtered(
             lambda line: line.currency_id == self.currency_id
         )._get_l10n_do_line_amounts()
+
+    @api.depends("l10n_do_expense_type")
+    def _compute_l10n_do_purchase_type(self):
+        for invoice in self:
+            invoice.l10n_do_purchase_type = (
+                str(int(invoice.l10n_do_expense_type))
+                if invoice.l10n_do_expense_type
+                else invoice.l10n_do_purchase_type or "9"
+            )
 
     @api.depends(
         "company_id",
@@ -635,35 +650,22 @@ class AccountMove(models.Model):
         return super()._get_starting_sequence()
 
     def _get_last_sequence_domain(self, relaxed=False):
-        where_string, param = super(AccountMove, self)._get_last_sequence_domain(
-            relaxed
+        if not self.env.context.get("is_l10n_do_seq", False):
+            return super(AccountMove, self)._get_last_sequence_domain(relaxed)
+
+        # The fiscal sequence belongs to the document type, whatever the
+        # journal, and it never starts over. Odoo 20 answers with an SQL object
+        # that cannot be edited, so the condition is written here (2026-11-01).
+        condition = SQL(
+            "name != '/' AND l10n_latam_document_type_id = %s AND company_id = %s"
+            " AND l10n_do_sequence_prefix != ''"
+            " AND l10n_do_sequence_prefix IS NOT NULL",
+            self.l10n_latam_document_type_id.id or 0,
+            self.company_id.id or False,
         )
-
-        if self.l10n_latam_use_documents and self.country_code == "DO":
-            where_string = where_string.replace(
-                "AND sequence_prefix !~ %(anti_regex)s ", ""
-            )
-        if self.env.context.get("is_l10n_do_seq", False):
-            where_string = where_string.replace("journal_id = %(journal_id)s AND", "")
-            where_string += (
-                " AND l10n_latam_document_type_id = %(l10n_latam_document_type_id)s AND"
-                " company_id = %(company_id)s AND l10n_do_sequence_prefix != ''"
-                " AND l10n_do_sequence_prefix IS NOT NULL"
-            )
-            if (
-                not self.l10n_latam_manual_document_number
-                and self.move_type != "in_refund"
-            ):
-                where_string += " AND move_type = %(move_type)s"
-                param["move_type"] = self.move_type
-            else:
-                where_string += " AND l10n_latam_manual_document_number = 'f'"
-
-            param["company_id"] = self.company_id.id or False
-            param["l10n_latam_document_type_id"] = (
-                self.l10n_latam_document_type_id.id or 0
-            )
-        return where_string, param
+        if not self.l10n_latam_manual_document_number and self.move_type != "in_refund":
+            return SQL("%s AND move_type = %s", condition, self.move_type)
+        return SQL("%s AND l10n_latam_manual_document_number = 'f'", condition)
 
     @api.depends(lambda self: [self._l10n_do_sequence_field])
     def _compute_split_sequence(self):
@@ -693,28 +695,9 @@ class AccountMove(models.Model):
             raise ValidationError(
                 _("%s is not a stored field", self._l10n_do_sequence_field)
             )
-        where_string, param = self._get_last_sequence_domain(relaxed)
-        if self.id or self.id.origin:
-            where_string += " AND id != %(id)s "
-            param["id"] = self.id or self.id.origin
-
-        query = """
-            UPDATE {table} SET write_date = write_date WHERE id = (
-                SELECT id FROM {table}
-                {where_string}
-                AND l10n_do_sequence_prefix = (
-                SELECT l10n_do_sequence_prefix
-                FROM {table} {where_string}
-                ORDER BY id DESC LIMIT 1)
-                ORDER BY l10n_do_sequence_number DESC
-                LIMIT 1
-            )
-            RETURNING {field};
-        """.format(
-            table=self._table,
-            where_string=where_string,
-            field=self._l10n_do_sequence_field,
-        )
+        condition = self._get_last_sequence_domain(relaxed)
+        if self._origin.id:
+            condition = SQL("%s AND id != %s", condition, self._origin.id)
 
         self.flush_model(
             [
@@ -723,7 +706,26 @@ class AccountMove(models.Model):
                 "l10n_do_sequence_prefix",
             ]
         )
-        self.env.cr.execute(query, param)
+        self.env.cr.execute(
+            SQL(
+                """
+                UPDATE %(table)s SET write_date = write_date WHERE id = (
+                    SELECT id FROM %(table)s
+                    WHERE %(condition)s
+                    AND l10n_do_sequence_prefix = (
+                    SELECT l10n_do_sequence_prefix
+                    FROM %(table)s WHERE %(condition)s
+                    ORDER BY id DESC LIMIT 1)
+                    ORDER BY l10n_do_sequence_number DESC
+                    LIMIT 1
+                )
+                RETURNING %(field)s
+                """,
+                table=SQL.identifier(self._table),
+                condition=condition,
+                field=SQL.identifier(self._l10n_do_sequence_field),
+            )
+        )
         return (self.env.cr.fetchone() or [None])[0]
 
     def _get_sequence_format_param(self, previous):

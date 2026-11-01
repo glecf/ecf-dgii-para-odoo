@@ -1,4 +1,3 @@
-import base64
 
 from odoo import _, fields, models
 from odoo.exceptions import UserError
@@ -39,7 +38,7 @@ class GlecfCertificateWizard(models.TransientModel):
         if not filename.lower().endswith(ALLOWED_EXTENSIONS):
             raise UserError(_("El certificado debe ser un archivo .p12 o .pfx."))
 
-        content = base64.b64decode(self.certificate_file)
+        content = self.certificate_file.content
         password = self.certificate_password or ""
         self._forget_certificate()
 
