@@ -13,14 +13,24 @@ en Odoo como **comprobantes fiscales electrónicos (e-CF)**, tal como exige la
 > **En mejora continua.** El módulo funciona y se sigue ampliando. El manual,
 > con capturas: [docs/manual.md](docs/manual.md).
 
-Funciona en **Odoo 18 Community y Enterprise**, con la localización dominicana
-incluida. ¿Usas otra versión? Odoo 20 está en la rama
-[20.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/20.0), Odoo 19 en la
-[19.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/19.0) y Odoo 17 en la
-[17.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/17.0). La firma y el
-envío a la DGII los hace
-[GLECF](https://glecf.com). Tu certificado digital se sube desde Odoo, pero
-queda guardado en GLECF, no en Odoo.
+## Versiones de Odoo
+
+Funciona en **Odoo 17, 18, 19 y 20, Community y Enterprise**. Necesitas Odoo.sh o un servidor propio: Odoo Online no admite
+módulos externos. Cada versión
+tiene su rama, y esta es la de **Odoo 18**.
+
+| Tu Odoo | Rama | Localización dominicana |
+|---|---|---|
+| Odoo 20 | [20.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/20.0) | Incluida |
+| Odoo 19 | [19.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/19.0) | Incluida |
+| Odoo 18 | [18.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/18.0) | Incluida |
+| Odoo 17 | [17.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/17.0) | Se instala aparte: `l10n_do_accounting` |
+
+## Cómo funciona
+
+Confirmas la factura en Odoo, y [GLECF](https://glecf.com) la firma con tu
+certificado digital y la envía a la DGII. El certificado se sube desde Odoo, pero
+se guarda en GLECF, no en Odoo.
 
 ## Qué hace
 
