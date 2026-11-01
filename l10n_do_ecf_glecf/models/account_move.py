@@ -191,8 +191,21 @@ class AccountMove(models.Model):
         group = self.env["account.tax"]._l10n_do_tax_groups(line.company_id)["itbis"]
         taxes = line.tax_ids.filtered(lambda tax: tax.tax_group_id in group and tax.amount > 0)
         price = line.price_unit * (1 - (line.discount or 0.0) / 100)
-        computed = taxes.compute_all(price, quantity=line.quantity)
+        computed = line._l10n_do_in_document_mode(taxes).compute_all(price, quantity=line.quantity)
         return sum(tax["amount"] for tax in computed["taxes"])
+
+    def _glecf_line_amount(self, line):
+        """The MontoItem of a line: a minor expense has the ITBIS inside."""
+        return line.price_total if self._glecf_printed_type() == "43" else line.price_subtotal
+
+    def _glecf_line_unit_price(self, line):
+        """The price of a line before its discount, without ITBIS, as it goes to
+        the DGII: with «Impuestos incl.» the price of the line has it."""
+        discount = 0 if self._glecf_printed_type() in ("43", "47") else line.discount or 0
+        amount = self._glecf_line_amount(line)
+        if discount >= 100:
+            return line.price_unit
+        return amount / (1 - discount / 100) / (line.quantity or 1)
 
     def _glecf_printed_type(self):
         """The e-CF type of the document, empty when it is not an e-CF."""

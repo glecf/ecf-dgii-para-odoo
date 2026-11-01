@@ -29,13 +29,23 @@ class AccountMoveLine(models.Model):
                 price_unit = line.price_unit
                 if line.discount:
                     price_unit = price_unit - (price_unit * (line.discount / 100))
-                itbis_taxes_data = line_itbis_taxes.compute_all(
+                itbis_taxes_data = line._l10n_do_in_document_mode(
+                    line_itbis_taxes
+                ).compute_all(
                     price_unit=price_unit,
                     quantity=line.quantity,
                 )
                 line.l10n_do_itbis_amount = sum(
                     [t["amount"] for t in itbis_taxes_data["taxes"]]
                 )
+
+    def _l10n_do_in_document_mode(self, taxes):
+        """`compute_all` does not know «Impuestos incl.», new in the invoice of
+        Odoo 20: alone, it adds the ITBIS on top of a price that has it."""
+        self.ensure_one()
+        return taxes.with_context(
+            force_price_include=self.document_tax_mode == "tax_included"
+        )
 
     def _get_l10n_do_line_amounts(self):
         groups = self.env["account.tax"]._l10n_do_tax_groups(self.company_id)

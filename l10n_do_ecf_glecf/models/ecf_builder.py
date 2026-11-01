@@ -471,7 +471,7 @@ def _withholding(move, line, tipo, groups, indicator, service, withheld):
     taxes = line.tax_ids.filtered(lambda tax: _is_withholding(tax, groups))
     if taxes:
         price = line.price_unit * (1 - (line.discount or 0) / 100)
-        computed = line.tax_ids.compute_all(
+        computed = line._l10n_do_in_document_mode(line.tax_ids).compute_all(
             price, currency, line.quantity, product=line.product_id, partner=move.partner_id
         )["taxes"]
         for result in computed:
