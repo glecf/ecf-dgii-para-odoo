@@ -3,7 +3,6 @@ from werkzeug import urls
 
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError, AccessError
-from odoo.fields import Command
 
 
 class AccountMove(models.Model):
@@ -64,7 +63,7 @@ class AccountMove(models.Model):
         selection="_get_l10n_do_income_type",
         string="Income Type",
         copy=False,
-        default=lambda self: self._context.get("l10n_do_income_type", "01"),
+        default=lambda self: self.env.context.get("l10n_do_income_type", "01"),
     )
 
     l10n_do_origin_ncf = fields.Char(
@@ -518,33 +517,13 @@ class AccountMove(models.Model):
         return super(AccountMove, self)._onchange_partner_id()
 
     def _reverse_moves(self, default_values_list=None, cancel=False):
-        # Odoo 19 removed `_reverse_move_vals`: the reversal is now a copy of the
-        # move, so the fiscal data goes in its default values (2026-10-30).
-        ctx = self.env.context
+        # Odoo 19 removed `_reverse_move_vals`. The credit note wizard fills the
+        # fiscal data itself; this covers reversals made without it (2026-11-01).
         default_values_list = default_values_list or [{} for _move in self]
         for move, values in zip(self, default_values_list):
             if move.country_code == "DO":
-                values["l10n_do_origin_ncf"] = move.l10n_do_fiscal_number or move.ref
-                values["l10n_do_ecf_modification_code"] = ctx.get("l10n_do_ecf_modification_code")
-
-        reversals = super()._reverse_moves(default_values_list, cancel)
-
-        refund_type = ctx.get("refund_type")
-        if refund_type not in ("percentage", "fixed_amount"):
-            return reversals
-        for move, reversal in zip(self, reversals):
-            if move.country_code != "DO":
-                continue
-            price_unit = (
-                ctx.get("amount")
-                if refund_type == "fixed_amount"
-                else move.amount_untaxed * (ctx.get("percentage") / 100)
-            )
-            reversal.invoice_line_ids = [Command.clear(), Command.create({
-                "name": ctx.get("reason") or _("Refund"),
-                "price_unit": price_unit,
-            })]
-        return reversals
+                values.setdefault("l10n_do_origin_ncf", move.l10n_do_fiscal_number or move.ref)
+        return super()._reverse_moves(default_values_list, cancel)
 
     @api.depends("l10n_latam_document_type_id", "journal_id")
     def _compute_l10n_latam_manual_document_number(self):
@@ -626,7 +605,7 @@ class AccountMove(models.Model):
 
     def _l10n_do_get_formatted_sequence(self):
         self.ensure_one()
-        if not self._context.get("is_l10n_do_seq", False):
+        if not self.env.context.get("is_l10n_do_seq", False):
             starting_sequence = "%s/%04d/0000" % (
                 self.journal_id.code,
                 self.date.year,
@@ -664,7 +643,7 @@ class AccountMove(models.Model):
             where_string = where_string.replace(
                 "AND sequence_prefix !~ %(anti_regex)s ", ""
             )
-        if self._context.get("is_l10n_do_seq", False):
+        if self.env.context.get("is_l10n_do_seq", False):
             where_string = where_string.replace("journal_id = %(journal_id)s AND", "")
             where_string += (
                 " AND l10n_latam_document_type_id = %(l10n_latam_document_type_id)s AND"
@@ -701,7 +680,7 @@ class AccountMove(models.Model):
             record.l10n_do_sequence_number = int(matching.group(1) or 0)
 
     def _get_last_sequence(self, relaxed=False, with_prefix=None):
-        if not self._context.get("is_l10n_do_seq", False):
+        if not self.env.context.get("is_l10n_do_seq", False):
             return super(AccountMove, self)._get_last_sequence(
                 relaxed=relaxed, with_prefix=with_prefix
             )
@@ -748,7 +727,7 @@ class AccountMove(models.Model):
         return (self.env.cr.fetchone() or [None])[0]
 
     def _get_sequence_format_param(self, previous):
-        if not self._context.get("is_l10n_do_seq", False):
+        if not self.env.context.get("is_l10n_do_seq", False):
             return super(AccountMove, self)._get_sequence_format_param(previous)
 
         regex = self._l10n_do_sequence_fixed_regex
@@ -766,7 +745,7 @@ class AccountMove(models.Model):
     def _set_next_sequence(self):
         self.ensure_one()
 
-        if not self._context.get("is_l10n_do_seq", False):
+        if not self.env.context.get("is_l10n_do_seq", False):
             return super(AccountMove, self)._set_next_sequence()
 
         last_sequence = self._get_last_sequence()
@@ -821,10 +800,10 @@ class AccountMove(models.Model):
             self.l10n_latam_use_documents
             and self.company_id.country_id.code == "DO"
             and self.posted_before
-            and not self._context.get("is_l10n_do_seq", False)
+            and not self.env.context.get("is_l10n_do_seq", False)
         ):
             return "year"
-        elif self._context.get("is_l10n_do_seq", False):
+        elif self.env.context.get("is_l10n_do_seq", False):
             return "never"
         else:
             return super(AccountMove, self)._deduce_sequence_number_reset(name)
