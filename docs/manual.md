@@ -5,12 +5,12 @@ la DGII como comprobantes fiscales electrónicos (e-CF), según la Ley núm. 32-
 de Facturación Electrónica y el Decreto 587-24. La firma y el envío los hace
 [GLECF](https://glecf.com).
 
-> **El módulo está en mejora continua.** Funciona en Odoo 18 Community y
+> **El módulo está en mejora continua.** Funciona en Odoo 19 Community y
 > Enterprise. Las capturas son de una empresa de pruebas.
 
 ## Antes de empezar
 
-- Odoo 18. La localización dominicana viene incluida.
+- Odoo 19. La localización dominicana viene incluida.
 - Una cuenta de GLECF con **plan de pago** (Licencia Anual o plan a medida). El
   Plan Gratis no incluye Odoo: [glecf.com/precios](https://glecf.com/precios/).
 - El certificado digital de la empresa (.p12).
