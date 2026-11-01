@@ -32,12 +32,39 @@
         <xpath expr="//span[@id='line_tax_ids']" position="attributes">
             <attribute name="t-out">', '.join(tax.name for tax in line.tax_ids) if not ecf_representation else '%s %s' % (o.currency_id.symbol, '{0:,.2f}'.format(o._glecf_line_itbis(line)))</attribute>
         </xpath>
+        <!-- A minor expense goes to the DGII with the ITBIS inside the price. -->
+        <xpath expr="//span[@t-field='line.price_unit']" position="replace">
+            <t t-if="o._glecf_printed_type() != '43'">$0</t>
+            <span t-if="o._glecf_printed_type() == '43' and not hide_prices" class="text-nowrap"
+                  t-out="line.price_total / (line.quantity or 1)"
+                  t-options='{"widget": "float", "precision": 2}'/>
+        </xpath>
+        <xpath expr="//span[@t-field='line.price_subtotal']" position="replace">
+            <t t-if="o._glecf_printed_type() != '43'">$0</t>
+            <span t-if="o._glecf_printed_type() == '43' and not hide_prices and o.company_price_include == 'tax_excluded'" class="text-nowrap"
+                  t-out="line.price_total"
+                  t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+        </xpath>
     </template>
 
     <!-- After the withholdings, what is actually paid (2026-10-30).
          o_total paints the row in the Boxed layout, and the amounts of this
          table came out dark on dark, unreadable. -->
     <template id="document_tax_totals_ecf" inherit_id="l10n_do_accounting.document_tax_totals">
+        <!-- The amounts sent to the DGII, not the ones of the invoice taxes
+             (2026-11-01). A minor expense has no ITBIS in its e-CF. -->
+        <xpath expr="//tr[hasclass('o_subtotal')]//span" position="replace">
+            <t t-if="o._glecf_printed_type() != '43'">$0</t>
+            <span t-else="" class="text-nowrap" t-out="o._glecf_report_amounts()['exempt']"
+                  t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+        </xpath>
+        <xpath expr="//tr[@t-if='tax_aml.tax_line_id.amount > 0']" position="attributes">
+            <attribute name="t-if">tax_aml.tax_line_id.amount > 0 and o._glecf_printed_type() != '43'</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set='total_exempt_amount']" position="after">
+            <t t-set="total_amount_taxed" t-value="o._glecf_report_amounts()['taxed']"/>
+            <t t-set="total_exempt_amount" t-value="o._glecf_report_amounts()['exempt']"/>
+        </xpath>
         <xpath expr="//tr[td[normalize-space()='Monto Gravado']]" position="attributes">
             <attribute name="class" remove="o_total" separator=" "/>
         </xpath>
