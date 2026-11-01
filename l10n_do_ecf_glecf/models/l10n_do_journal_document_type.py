@@ -18,6 +18,9 @@ class AccountJournalDocumentType(models.Model):
 
     _inherit = "l10n_do.account.journal.document_type"
 
+    # Odoo deletes the journals of the generic chart when the company moves to
+    # the Dominican one (2026-11-01).
+    journal_id = fields.Many2one(ondelete="cascade")
     glecf_expiry_confirmed = fields.Boolean(
         string="Revisada",
         help="La fecha de vencimiento se comprobó con la secuencia que autorizó la DGII.",

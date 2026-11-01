@@ -14,7 +14,8 @@ en Odoo como **comprobantes fiscales electrónicos (e-CF)**, tal como exige la
 > con capturas: [docs/manual.md](docs/manual.md).
 
 Funciona en **Odoo 17 Community y Enterprise**, sobre la localización
-dominicana `l10n_do_accounting`. ¿Usas otra versión? Odoo 19 está en la rama
+dominicana `l10n_do_accounting`. ¿Usas otra versión? Odoo 20 está en la rama
+[20.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/20.0), Odoo 19 en la
 [19.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/19.0) y Odoo 18 en la
 [18.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/18.0). La firma y el envío a la DGII los hace
 [GLECF](https://glecf.com). Tu certificado digital se sube desde Odoo, pero
@@ -49,13 +50,13 @@ próxima versión.
 
 ## Instalación
 
-### Odoo 18 y 19
+### Odoo 18, 19 y 20
 
 La localización dominicana ya viene incluida: solo necesitas este repositorio,
-en la rama de tu versión. Por ejemplo, para Odoo 19:
+en la rama de tu versión. Por ejemplo, para Odoo 20:
 
 ```bash
-git clone -b 19.0 https://github.com/glecf/ecf-dgii-para-odoo.git
+git clone -b 20.0 https://github.com/glecf/ecf-dgii-para-odoo.git
 ```
 
 Añade la carpeta al `addons_path` de Odoo, actualiza la lista de aplicaciones e
