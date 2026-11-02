@@ -64,9 +64,9 @@
                              help="Tu plantilla de factura es distinta de la habitual."
                              invisible="not glecf_invoice_notice">
                         <div class="mt8 text-warning">
-                            GLECF no pudo ajustar en la factura impresa:
-                            <field name="glecf_invoice_notice" class="oe_inline"/>.
-                            <div>
+                            GLECF no pudo ajustar en la factura impresa
+                            <field name="glecf_invoice_notice" class="oe_inline"/>
+                            <div class="mt4">
                                 Tus e-CF se envían igual a la DGII. Revisa lo impreso y escríbenos a
                                 <a href="mailto:soporte@glecf.com">soporte@glecf.com</a>.
                             </div>
