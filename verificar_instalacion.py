@@ -32,9 +32,12 @@ def heredadas(vista, nivel=1):
 
 
 def compatibilidad():
-    arbol = etree.parse(os.environ["GLECF_XML"]).getroot()
     fallos = 0
-    for plantilla in arbol.iter("template"):
+    plantillas = []
+    for ruta in os.environ["GLECF_XML"].split(":"):
+        if os.path.exists(ruta):
+            plantillas.extend(etree.parse(ruta).getroot().iter("template"))
+    for plantilla in plantillas:
         padre = env.ref(plantilla.get("inherit_id"), raise_if_not_found=False)
         if not padre:
             print("FALTA la plantilla %s" % plantilla.get("inherit_id"))
@@ -44,7 +47,7 @@ def compatibilidad():
         for xpath in plantilla.iter("xpath"):
             expr = xpath.get("expr")
             if not arch.xpath(expr):
-                print("NO ENCONTRADO en %s: %s" % (plantilla.get("inherit_id"), expr))
+                print("NO ENCONTRADO en %s (%s): %s" % (plantilla.get("inherit_id"), plantilla.get("id"), expr))
                 fallos += 1
     return fallos
 

@@ -11,7 +11,7 @@ Electrónica y el Decreto 587-24. Los firma y los envía GLECF
 (https://glecf.com) con tu certificado digital. Los datos de tus facturas solo
 salen de Odoo después de que lo aceptes en Ajustes.
 """,
-    "version": "19.0.1.1.3",
+    "version": "19.0.1.1.4",
     "category": "Accounting/Localizations/EDI",
     "author": "GLECF",
     "website": "https://glecf.com",
@@ -27,6 +27,7 @@ salen de Odoo después de que lo aceptes en Ajustes.
         "views/res_config_settings_views.xml",
         "views/account_move_views.xml",
         "views/report_invoice.xml",
+        "data/retoques_factura.xml",
         "views/received_views.xml",
     ],
     "assets": {
