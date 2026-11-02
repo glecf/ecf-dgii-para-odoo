@@ -73,6 +73,20 @@ instala **e-CF DGII para Odoo**. La localización se instala con él.
 Si el PDF de la factura sale sin QR o sin diseño, mira la sección «La factura
 impresa» del [manual](docs/manual.md).
 
+## Verificar antes de instalar
+
+Si la instalación da un error, o si tu factura está personalizada, comprueba tu
+Odoo desde la carpeta de este repositorio:
+
+```bash
+git pull
+sh verificar-instalacion.sh
+```
+
+Solo lee: no instala ni cambia nada. Dice si tus plantillas admiten el módulo, qué
+las modifica y dónde queda el informe. Si te pide contraseña, es la de `sudo`.
+Si tienes varias bases, indica cuál: `sh verificar-instalacion.sh NOMBRE_BASE`.
+
 ## Puesta en marcha
 
 1. En Odoo, ve a *Ajustes > Facturación > Facturación electrónica (e-CF)* y
