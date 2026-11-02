@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Touches to a template a customer may have changed. This file is not loaded
+     as data: ir_ui_view.py applies each one only where its nodes exist, so a
+     customized invoice cannot stop the install. -->
+<odoo>
+    <!-- A consumer with no identification: no empty «ID Cliente:» line.
+         Located by position: the attribute on that span changes between copies
+         of the localization. -->
+    <template id="informations_ecf_cliente" inherit_id="l10n_do_accounting.informations">
+        <xpath expr="//div[@id='receiver_info']/div/strong[1]" position="attributes">
+            <attribute name="t-if">vat_len</attribute>
+        </xpath>
+        <xpath expr="//div[@id='receiver_info']/div/br[1]" position="attributes">
+            <attribute name="t-if">vat_len</attribute>
+        </xpath>
+    </template>
+
+    <!-- Column I of the DGII format: printing it is mandatory in every type but
+         E32 and E34, and E41, E43 and E47 are vendor bills (2026-11-01). The
+         sequence expiry printed is the one sent to the DGII (in the test
+         environment, the DGII's 31-12-2028), not the date copied onto the
+         invoice when it was created. -->
+    <template id="informations_ecf_vencimiento" inherit_id="l10n_do_accounting.informations">
+        <xpath expr="//span[@id='fiscal_exp_date']" position="attributes">
+            <attribute name="t-if">o.l10n_latam_use_documents and o.state == 'posted' and o.l10n_do_fiscal_number and o.l10n_latam_document_type_id and (o.move_type in ['out_invoice', 'out_refund'] or o.l10n_latam_document_type_id.doc_code_prefix[1:] in ('41', '43', '47')) and o.l10n_latam_document_type_id.doc_code_prefix[1:] not in ('32', '34', '02')</attribute>
+        </xpath>
+        <xpath expr="//span[@id='ecf_exp_date']" position="replace">
+            <span id="ecf_exp_date" t-out="o._glecf_sequence_expiry_text()"/>
+        </xpath>
+    </template>
+</odoo>
