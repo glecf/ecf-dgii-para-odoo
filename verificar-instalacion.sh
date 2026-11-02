@@ -14,12 +14,13 @@ BASE=$1
 SALIDA=/tmp/verificacion-ecf-dgii.txt
 XML="$AQUI/l10n_do_ecf_glecf/views/report_invoice.xml"
 [ -f "$XML" ] || XML="$AQUI/report_invoice.xml"
+OPCIONAL="$(dirname "$XML")/report_invoice_opcional.xml"
 [ -f "$XML" ] && [ -f "$AQUI/verificar_instalacion.py" ] || { echo "Ejecuta este archivo desde la carpeta del repositorio."; exit 1; }
 
 # Lo ejecuta dentro del contenedor, con el Odoo de allí.
 en_contenedor() {
     docker exec "$1" sh -c 'rm -rf /tmp/verificar-ecf-dgii; mkdir -p /tmp/verificar-ecf-dgii' || exit 1
-    for f in "$AQUI/verificar-instalacion.sh" "$AQUI/verificar_instalacion.py" "$XML"; do
+    for f in "$AQUI/verificar-instalacion.sh" "$AQUI/verificar_instalacion.py" "$XML" "$OPCIONAL"; do
         docker cp -q "$f" "$1:/tmp/verificar-ecf-dgii/" || exit 1
     done
     docker exec "$1" sh /tmp/verificar-ecf-dgii/verificar-instalacion.sh $BASE
@@ -89,7 +90,7 @@ case "$CONF" in /*|"") ;; *) CONF="$RAIZ/$CONF" ;; esac
 if [ -n "$CONF" ] && [ ! -r "$CONF" ]; then
     DUENO=$(ps -o user= -p "$PID" | tr -d ' ')
     TEMPORAL=/tmp/verificar-ecf-dgii
-    mkdir -p "$TEMPORAL" && cp "$AQUI/verificar-instalacion.sh" "$AQUI/verificar_instalacion.py" "$XML" "$TEMPORAL/" && chmod -R a+rX "$TEMPORAL"
+    mkdir -p "$TEMPORAL" && cp "$AQUI/verificar-instalacion.sh" "$AQUI/verificar_instalacion.py" "$XML" "$OPCIONAL" "$TEMPORAL/" && chmod -R a+rX "$TEMPORAL"
     echo "Hace falta el usuario de Odoo ($DUENO). Si te pide contraseña, es la de sudo."
     exec sudo -u "$DUENO" sh "$TEMPORAL/verificar-instalacion.sh" $BASE
 fi
@@ -118,7 +119,7 @@ fi
 echo "Odoo: $BIN | configuración: ${CONF:-sin archivo} | base: $BASE"
 if [ -n "$PY" ]; then set -- "$PY" "$BIN"; else set -- "$BIN"; fi
 if [ -n "$CONF" ]; then set -- "$@" shell -c "$CONF"; else set -- "$@" shell; fi
-GLECF_XML="$XML" "$@" -d "$BASE" --no-http --http-port=8199 < "$AQUI/verificar_instalacion.py" > "$SALIDA" 2>&1
+GLECF_XML="$XML:$OPCIONAL" "$@" -d "$BASE" --no-http --http-port=8199 < "$AQUI/verificar_instalacion.py" > "$SALIDA" 2>&1
 if grep -q '=== FIN ===' "$SALIDA"; then
     echo
     echo "----- COPIA DESDE AQUÍ -----"
