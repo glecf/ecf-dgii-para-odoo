@@ -99,6 +99,8 @@ Solo lee: no instala ni cambia nada. Dice si tus plantillas admiten el módulo, 
 las modifica, y deja el informe en la terminal para copiarlo. Si te pide
 contraseña, es la de `sudo`.
 Si tienes varias bases, indica cuál: `sh verificar-instalacion.sh NOMBRE_BASE`.
+Sirve con Odoo instalado en el servidor y con Odoo en Docker. Si tienes varios
+contenedores: `sh verificar-instalacion.sh --contenedor NOMBRE`.
 
 ## Puesta en marcha
 
