@@ -85,6 +85,20 @@ git clone -b 17.0 https://github.com/glecf/ecf-dgii-para-odoo.git
 Añade las dos carpetas al `addons_path` de Odoo, actualiza la lista de
 aplicaciones e instala **e-CF DGII para Odoo**.
 
+## Verificar antes de instalar
+
+Si la instalación da un error, o si tu factura está personalizada, comprueba tu
+Odoo desde la carpeta de este repositorio:
+
+```bash
+git pull
+sh verificar-instalacion.sh
+```
+
+Solo lee: no instala ni cambia nada. Dice si tus plantillas admiten el módulo, qué
+las modifica y dónde queda el informe. Si te pide contraseña, es la de `sudo`.
+Si tienes varias bases, indica cuál: `sh verificar-instalacion.sh NOMBRE_BASE`.
+
 ## Puesta en marcha
 
 1. En Odoo, ve a *Ajustes > Facturación > Facturación electrónica (e-CF)* y
