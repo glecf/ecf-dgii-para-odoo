@@ -93,11 +93,13 @@
          environment, the DGII's 31-12-2028), not the date copied onto the
          invoice when it was created. -->
     <template id="informations_ecf" inherit_id="l10n_do_accounting.informations">
-        <!-- A consumer with no identification: no empty «ID Cliente:» line. -->
-        <xpath expr="//span[@t-out=&quot;o.commercial_partner_id.vat or ''&quot;]/preceding-sibling::strong[1]" position="attributes">
+        <!-- A consumer with no identification: no empty «ID Cliente:» line.
+             Located by position: the attribute on that span changes between
+             copies of the localization, and a missing node stops the install. -->
+        <xpath expr="//div[@id='receiver_info']/div/strong[1]" position="attributes">
             <attribute name="t-if">vat_len</attribute>
         </xpath>
-        <xpath expr="//span[@t-out=&quot;o.commercial_partner_id.vat or ''&quot;]/following-sibling::br[1]" position="attributes">
+        <xpath expr="//div[@id='receiver_info']/div/br[1]" position="attributes">
             <attribute name="t-if">vat_len</attribute>
         </xpath>
         <!-- Column I of the DGII format: printing it is mandatory in every type
