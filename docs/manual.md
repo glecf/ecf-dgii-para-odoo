@@ -127,6 +127,10 @@ dirección al generarlo. Pasa sobre todo con Docker o detrás de un proxy. Activ
 modo de desarrollador, ve a Ajustes > Técnico > Parámetros del sistema y crea
 `report.url` con `http://localhost:8069`. Si tu Odoo usa otro puerto, pon ese.
 
+Si tu plantilla de factura está personalizada, el módulo se instala igual y omite
+los ajustes que no puede aplicar. Ajustes te avisa de cuáles son: revisa lo impreso,
+sobre todo el vencimiento del e-NCF.
+
 ## 7. Los e-CF que recibes
 
 Los comprobantes que te mandan tus proveedores llegan a GLECF y entran en Odoo

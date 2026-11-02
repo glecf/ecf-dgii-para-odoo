@@ -60,6 +60,18 @@
                                     string="Volver a conectar" class="btn-link"/>
                         </div>
                     </setting>
+                    <setting id="glecf_invoice_notice" string="Tu factura está personalizada"
+                             help="Tu plantilla de factura es distinta de la habitual."
+                             invisible="not glecf_invoice_notice">
+                        <div class="mt8 text-warning">
+                            GLECF no pudo ajustar en la factura impresa:
+                            <field name="glecf_invoice_notice" class="oe_inline"/>.
+                            <div>
+                                Tus e-CF se envían igual a la DGII. Revisa lo impreso y escríbenos a
+                                <a href="mailto:soporte@glecf.com">soporte@glecf.com</a>.
+                            </div>
+                        </div>
+                    </setting>
                     <setting id="glecf_module_update" string="Hay una versión nueva del módulo"
                              help="Trae correcciones y novedades. Tu copia no se actualiza sola."
                              invisible="not glecf_module_update">
