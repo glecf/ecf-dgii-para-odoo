@@ -70,8 +70,13 @@ if [ -n "$PY" ]; then set -- "$PY" "$BIN"; else set -- "$BIN"; fi
 if [ -n "$CONF" ]; then set -- "$@" shell -c "$CONF"; else set -- "$@" shell; fi
 GLECF_XML="$XML" "$@" -d "$BASE" --no-http --http-port=8199 < "$AQUI/verificar_instalacion.py" > "$SALIDA" 2>&1
 if grep -q '=== FIN ===' "$SALIDA"; then
+    echo
+    echo "----- COPIA DESDE AQUÍ -----"
+    sed -n '/^=== VERIFICACION/,/^=== FIN ===/p' "$SALIDA"
+    echo "----- HASTA AQUÍ -----"
+    echo
     grep -E '^RESULTADO|^NO ENCONTRADO|^FALTA|^El modulo ya|^La localizacion' "$SALIDA"
-    echo "Informe completo: $SALIDA"
+    echo "Informe también guardado en: $SALIDA"
 else
     echo "No terminó bien. Revisa o envía: $SALIDA"
 fi

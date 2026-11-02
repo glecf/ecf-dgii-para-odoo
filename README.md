@@ -84,7 +84,8 @@ sh verificar-instalacion.sh
 ```
 
 Solo lee: no instala ni cambia nada. Dice si tus plantillas admiten el módulo, qué
-las modifica y dónde queda el informe. Si te pide contraseña, es la de `sudo`.
+las modifica, y deja el informe en la terminal para copiarlo. Si te pide
+contraseña, es la de `sudo`.
 Si tienes varias bases, indica cuál: `sh verificar-instalacion.sh NOMBRE_BASE`.
 
 ## Puesta en marcha
