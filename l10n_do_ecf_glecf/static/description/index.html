@@ -7,43 +7,43 @@
             <img src="logo-glecf.svg" alt="GLECF" style="height:36px;margin:0 0 16px"/>
             <h1 style="font-size:32px;font-weight:700;margin:0 0 8px">e-CF DGII para Odoo</h1>
             <p style="font-size:18px;color:#4b5563;margin:0">
-                Facturación electrónica para Odoo en República Dominicana. Envía a la DGII tus facturas como
-                comprobantes fiscales electrónicos (e-CF), según la Ley núm. 32-23 de Facturación Electrónica
+                Facturaci&#243;n electr&#243;nica para Odoo en Rep&#250;blica Dominicana. Env&#237;a a la DGII tus facturas como
+                comprobantes fiscales electr&#243;nicos (e-CF), seg&#250;n la Ley n&#250;m. 32-23 de Facturaci&#243;n Electr&#243;nica
                 y el Decreto 587-24.
             </p>
         </div>
     </div>
 
     <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 8px">
-        El módulo está en mejora continua: funciona y se sigue ampliando.
+        El m&#243;dulo est&#225; en mejora continua: funciona y se sigue ampliando.
     </p>
     <p style="font-size:16px;line-height:1.6;margin:0 0 8px;padding:10px 14px;background:#eff6ff;border-radius:6px;color:#1e40af">
-        <strong>Solo con un plan de pago de GLECF</strong> (Licencia Anual o plan a medida). El módulo se
+        <strong>Solo con un plan de pago de GLECF</strong> (Licencia Anual o plan a medida). El m&#243;dulo se
         descarga gratis, pero el Plan Gratis de GLECF no incluye Odoo.
     </p>
 
-    <h2 style="font-size:22px;font-weight:600;color:#2563eb;margin:32px 0 12px">Cómo funciona</h2>
+    <h2 style="font-size:22px;font-weight:600;color:#2563eb;margin:32px 0 12px">C&#243;mo funciona</h2>
     <ol style="font-size:16px;line-height:1.7;padding-left:20px">
-        <li>En Ajustes &gt; Facturación &gt; Facturación electrónica (e-CF), pulsa Conectar con GLECF, inicia sesión y pulsa Autorizar. Vuelves a Odoo ya conectado, sin copiar ninguna clave.</li>
-        <li>¿Aún no tienes cuenta? Créala desde la misma pantalla (el registro se abre con el nombre, el RNC y la dirección de tu empresa tal como están en Odoo) y contrata la Licencia Anual de GLECF.</li>
-        <li>Sube tu certificado digital (.p12) desde la misma pantalla. Va directo a GLECF, cifrado; Odoo no guarda ni el archivo ni su contraseña.</li>
-        <li>Pon a cada secuencia e-NCF la fecha de vencimiento que autorizó la DGII.</li>
-        <li>Acepta el envío de tus facturas a GLECF.</li>
-        <li>Publica tus facturas como siempre. Cada e-CF se firma y se envía a la DGII, y la respuesta vuelve a la factura.</li>
+        <li>En Ajustes &gt; Facturaci&#243;n &gt; Facturaci&#243;n electr&#243;nica (e-CF), pulsa Conectar con GLECF, inicia sesi&#243;n y pulsa Autorizar. Vuelves a Odoo ya conectado, sin copiar ninguna clave.</li>
+        <li>&#191;A&#250;n no tienes cuenta? Cr&#233;ala desde la misma pantalla (el registro se abre con el nombre, el RNC y la direcci&#243;n de tu empresa tal como est&#225;n en Odoo) y contrata la Licencia Anual de GLECF.</li>
+        <li>Sube tu certificado digital (.p12) desde la misma pantalla. Va directo a GLECF, cifrado; Odoo no guarda ni el archivo ni su contrase&#241;a.</li>
+        <li>Pon a cada secuencia e-NCF la fecha de vencimiento que autoriz&#243; la DGII.</li>
+        <li>Acepta el env&#237;o de tus facturas a GLECF.</li>
+        <li>Publica tus facturas como siempre. Cada e-CF se firma y se env&#237;a a la DGII, y la respuesta vuelve a la factura.</li>
     </ol>
 
-    <h2 style="font-size:22px;font-weight:600;color:#2563eb;margin:32px 0 12px">Qué hace</h2>
+    <h2 style="font-size:22px;font-weight:600;color:#2563eb;margin:32px 0 12px">Qu&#233; hace</h2>
     <ul style="font-size:16px;line-height:1.7;padding-left:20px">
-        <li>Envía los diez tipos de e-CF de la DGII: E31 Crédito Fiscal, E32 Consumo, E33 Nota de Débito, E34 Nota de Crédito, E44 Regímenes Especiales, E45 Gubernamental y E46 Exportaciones, y desde la factura de proveedor E41 Compras, E43 Gastos Menores y E47 Pagos al Exterior, con sus retenciones de ITBIS e ISR.</li>
+        <li>Env&#237;a los diez tipos de e-CF de la DGII: E31 Cr&#233;dito Fiscal, E32 Consumo, E33 Nota de D&#233;bito, E34 Nota de Cr&#233;dito, E44 Reg&#237;menes Especiales, E45 Gubernamental y E46 Exportaciones, y desde la factura de proveedor E41 Compras, E43 Gastos Menores y E47 Pagos al Exterior, con sus retenciones de ITBIS e ISR.</li>
         <li>Revisa la factura antes de enviarla: si falta el RNC o el vencimiento de la secuencia, lo dice en Odoo, no en un rechazo de la DGII.</li>
-        <li>Trae los e-CF que te mandan tus proveedores como facturas de proveedor en borrador, con sus notas de crédito y débito enlazadas, el e-NCF listo para el 606 y el XML adjunto. Desde la factura los aceptas o rechazas, y la respuesta va a la DGII y al proveedor.</li>
-        <li>Reúne en una sola lista las secuencias e-NCF de todos los tipos y avisa de los vencimientos que nadie ha revisado.</li>
-        <li>Imprime la factura con el código QR de consulta de la DGII, el código de seguridad y la fecha y hora de la firma, y guarda el XML firmado.</li>
+        <li>Trae los e-CF que te mandan tus proveedores como facturas de proveedor en borrador, con sus notas de cr&#233;dito y d&#233;bito enlazadas, el e-NCF listo para el 606 y el XML adjunto. Desde la factura los aceptas o rechazas, y la respuesta va a la DGII y al proveedor.</li>
+        <li>Re&#250;ne en una sola lista las secuencias e-NCF de todos los tipos y avisa de los vencimientos que nadie ha revisado.</li>
+        <li>Imprime la factura con el c&#243;digo QR de consulta de la DGII, el c&#243;digo de seguridad y la fecha y hora de la firma, y guarda el XML firmado.</li>
         <li>Usa los datos de tu empresa en Odoo y comprueba que la cuenta de GLECF tenga el mismo RNC antes de enviar nada.</li>
-        <li>Muestra en Ajustes tu plan de GLECF y cuántos comprobantes te quedan este mes.</li>
+        <li>Muestra en Ajustes tu plan de GLECF y cu&#225;ntos comprobantes te quedan este mes.</li>
         <li>Muestra el estado ante la DGII en cada factura y en el listado.</li>
         <li>No deja volver a borrador una factura ya enviada a la DGII.</li>
-        <li>Funciona en Odoo Community y Enterprise, sobre la localización dominicana (l10n_do_accounting).</li>
+        <li>Funciona en Odoo Community y Enterprise, sobre la localizaci&#243;n dominicana (l10n_do_accounting).</li>
     </ul>
 
     <h2 style="font-size:22px;font-weight:600;color:#2563eb;margin:32px 0 12px">Direcciones para la DGII</h2>
@@ -53,27 +53,27 @@
         <strong>api.glecf.com</strong>: la DGII completa el resto.
     </p>
     <ul style="font-size:16px;line-height:1.7;padding-left:20px">
-        <li>URL Recepción ECF: api.glecf.com</li>
-        <li>URL Aprobación Comercial: api.glecf.com</li>
-        <li>URL Autentificación (opcional): api.glecf.com</li>
+        <li>URL Recepci&#243;n ECF: api.glecf.com</li>
+        <li>URL Aprobaci&#243;n Comercial: api.glecf.com</li>
+        <li>URL Autentificaci&#243;n (opcional): api.glecf.com</li>
     </ul>
 
     <h2 style="font-size:22px;font-weight:600;color:#2563eb;margin:32px 0 12px">Servicio externo y tus datos</h2>
     <p style="font-size:16px;line-height:1.7">
-        Este módulo necesita una cuenta de GLECF, el servicio que guarda tu certificado, firma cada e-CF y lo entrega
-        a la DGII. Nada sale de Odoo hasta que lo aceptas en Ajustes. Al enviar un e-CF van a GLECF su número, fechas,
-        importes, líneas y los datos de tu empresa y de tu cliente. Tus facturas siguen en tu Odoo: si dejas GLECF,
+        Este m&#243;dulo necesita una cuenta de GLECF, el servicio que guarda tu certificado, firma cada e-CF y lo entrega
+        a la DGII. Nada sale de Odoo hasta que lo aceptas en Ajustes. Al enviar un e-CF van a GLECF su n&#250;mero, fechas,
+        importes, l&#237;neas y los datos de tu empresa y de tu cliente. Tus facturas siguen en tu Odoo: si dejas GLECF,
         nada en Odoo queda bloqueado.
     </p>
     <p style="font-size:16px;line-height:1.7">
-        El módulo se descarga gratis. Para usarlo hace falta un plan de pago de GLECF (Licencia Anual o plan a medida), que cobra GLECF, no este módulo. El Plan Gratis de GLECF no incluye Odoo.
+        El m&#243;dulo se descarga gratis. Para usarlo hace falta un plan de pago de GLECF (Licencia Anual o plan a medida), que cobra GLECF, no este m&#243;dulo. El Plan Gratis de GLECF no incluye Odoo.
     </p>
 
     <h2 style="font-size:22px;font-weight:600;color:#2563eb;margin:32px 0 12px">Requisitos</h2>
     <ul style="font-size:16px;line-height:1.7;padding-left:20px">
         <li>Odoo 17.0, Community o Enterprise.</li>
-        <li>La localización fiscal dominicana l10n_do_accounting.</li>
-        <li>Una cuenta de GLECF con plan de pago y un certificado digital válido para la DGII.</li>
+        <li>La localizaci&#243;n fiscal dominicana l10n_do_accounting.</li>
+        <li>Una cuenta de GLECF con plan de pago y un certificado digital v&#225;lido para la DGII.</li>
         <li>Facturas en pesos dominicanos (DOP).</li>
     </ul>
 
