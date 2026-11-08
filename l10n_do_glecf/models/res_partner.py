@@ -69,7 +69,7 @@ class Partner(models.Model):
         if (
             fiscal_fields
             and not self.env.user.has_group(
-                "l10n_do_accounting.group_l10n_do_edit_fiscal_partner"
+                "l10n_do_glecf.group_l10n_do_edit_fiscal_partner"
             )
             and self.env["account.move"]
             .sudo()

@@ -382,7 +382,7 @@ class AccountMove(models.Model):
             )
 
         if not_ecf_fiscal_invoice and not self.env.user.has_group(
-            "l10n_do_accounting.group_l10n_do_fiscal_invoice_cancel"
+            "l10n_do_glecf.group_l10n_do_fiscal_invoice_cancel"
         ):
             raise AccessError(_("You are not allowed to cancel Fiscal Invoices"))
 
@@ -397,7 +397,7 @@ class AccountMove(models.Model):
             "skip_cancel_wizard", False
         ):
             action = (
-                self.env.ref("l10n_do_accounting.action_account_move_cancel")
+                self.env.ref("l10n_do_glecf.action_account_move_cancel")
                 .sudo()
                 .read()[0]
             )
@@ -415,7 +415,7 @@ class AccountMove(models.Model):
             and self.move_type[-6:] in ("nvoice", "refund")
         )
         if fiscal_invoice and not self.env.user.has_group(
-            "l10n_do_accounting.group_l10n_do_fiscal_credit_note"
+            "l10n_do_glecf.group_l10n_do_fiscal_credit_note"
         ):
             raise AccessError(_("You are not allowed to issue Fiscal Credit Notes"))
 
@@ -775,7 +775,7 @@ class AccountMove(models.Model):
     def _get_name_invoice_report(self):
         self.ensure_one()
         if self.l10n_latam_use_documents and self.country_code == "DO":
-            return "l10n_do_accounting.report_invoice_document_inherited"
+            return "l10n_do_glecf.report_invoice_document_inherited"
         return super()._get_name_invoice_report()
 
     # TODO: handle l10n_latam_invoice_document _compute_name() inheritance shit

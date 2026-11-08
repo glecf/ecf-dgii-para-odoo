@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- What the DGII asks of the printed e-CF (Informe Técnico e-CF, 18.2.3)
-         that the l10n_do_accounting template leaves short:
+         that the l10n_do_glecf template leaves short:
          - a QR of at least 22 x 22 mm, starting 2 cm or more from the edge of
            the sheet, that a phone can read: the long DGII link does not fit
            legibly in a 100 px image once printed. The PDF renders about 15%
@@ -10,7 +10,7 @@
          - the text under the QR, smaller than the invoice body (Jorge,
            2026-10-29). -->
     <template id="report_invoice_document_ecf"
-              inherit_id="l10n_do_accounting.report_invoice_document_inherited">
+              inherit_id="l10n_do_glecf.report_invoice_document_inherited">
         <xpath expr="//img[contains(@t-att-src, 'barcode_type=QR')]" position="attributes">
             <attribute name="t-att-src">'/report/barcode/?barcode_type=QR&amp;width=400&amp;height=400&amp;value=' + o.l10n_do_electronic_stamp</attribute>
             <attribute name="style">width: 29mm; height: 29mm;</attribute>
@@ -50,7 +50,7 @@
     <!-- After the withholdings, what is actually paid (2026-10-30).
          o_total paints the row in the Boxed layout, and the amounts of this
          table came out dark on dark, unreadable. -->
-    <template id="document_tax_totals_ecf" inherit_id="l10n_do_accounting.document_tax_totals">
+    <template id="document_tax_totals_ecf" inherit_id="l10n_do_glecf.document_tax_totals">
         <!-- The amounts sent to the DGII, not the ones of the invoice taxes
              (2026-11-01). A minor expense has no ITBIS in its e-CF. -->
         <xpath expr="//tr[hasclass('o_subtotal')]//span" position="replace">
@@ -83,8 +83,8 @@
     </template>
 
     <!-- Printed in Spanish whatever the language of the contact. -->
-    <template id="report_invoice_ecf" inherit_id="l10n_do_accounting.report_invoice">
-        <xpath expr="//t[@t-call='l10n_do_accounting.report_invoice_document_inherited']" position="attributes">
+    <template id="report_invoice_ecf" inherit_id="l10n_do_glecf.report_invoice">
+        <xpath expr="//t[@t-call='l10n_do_glecf.report_invoice_document_inherited']" position="attributes">
             <attribute name="t-lang">o._glecf_report_lang() or lang</attribute>
         </xpath>
     </template>

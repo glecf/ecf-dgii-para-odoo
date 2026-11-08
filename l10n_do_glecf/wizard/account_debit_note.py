@@ -87,7 +87,7 @@ class AccountDebitNote(models.TransientModel):
             and move.company_id.country_code == "DO"
         )
         if move_ids_use_document and not self.env.user.has_group(
-            "l10n_do_accounting.group_l10n_do_debit_note"
+            "l10n_do_glecf.group_l10n_do_debit_note"
         ):
             raise AccessError(_("You are not allowed to issue Debit Notes"))
 
