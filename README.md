@@ -148,5 +148,7 @@ Escribe a soporte@glecf.com.
 El módulo `l10n_do_ecf_glecf`: Odoo Proprietary License v1.0 (ver `LICENSE` y
 `COPYRIGHT`).
 
-La localización `l10n_do_accounting` es código libre de iterativo LLC e Indexa,
-adaptado a Odoo 20, bajo su licencia LGPL-3 (ver `l10n_do_accounting/LICENSE`).
+La localización `l10n_do_glecf` es una adaptación a Odoo 20 del código libre
+`l10n_do_accounting` de iterativo LLC e Indexa, bajo su licencia LGPL-3 (ver
+`l10n_do_glecf/LICENSE`). Lleva otro nombre para no confundirse con la original
+ni con otros módulos que usan ese mismo nombre.

@@ -1,14 +1,14 @@
 {
-    "name": "Fiscal Accounting (Rep. Dominicana)",
+    "name": "Localización fiscal dominicana (GLECF)",
     "summary": """
         Este módulo implementa la administración y gestión de los números de
          comprobantes fiscales para el cumplimento de la norma 06-18 de la
          Dirección de Impuestos Internos en la República Dominicana.""",
-    "author": "iterativo LLC, " "Indexa",
+    "author": "iterativo LLC, Indexa, GLECF",
     "category": "Localization",
     "license": "LGPL-3",
-    "website": "https://github.com/odoo-dominicana",
-    "version": "20.0.1.0.4",
+    "website": "https://github.com/glecf/ecf-dgii-para-odoo",
+    "version": "20.0.2.0.0",
     "countries": ["do"],
     # any module necessary for this one to work correctly
     "depends": ["l10n_latam_invoice_document", "l10n_do"],

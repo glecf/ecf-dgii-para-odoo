@@ -54,7 +54,7 @@ def compatibilidad():
 
 print("=== VERIFICACION e-CF DGII ===")
 print("Odoo %s" % odoo.release.version)
-for nombre in ("l10n_do_accounting", MODULO, "web_studio"):
+for nombre in ("l10n_do_glecf", MODULO, "web_studio"):
     m = M.search([("name", "=", nombre)], limit=1)
     print("Modulo %s: estado=%s instalada=%s archivo=%s ruta=%s" % (
         nombre, m.state, m.latest_version, m.installed_version, get_module_path(nombre)))
@@ -62,8 +62,8 @@ for nombre in ("l10n_do_accounting", MODULO, "web_studio"):
 instalado = M.search([("name", "=", MODULO), ("state", "=", "installed")], limit=1)
 print()
 print("=== COMPATIBILIDAD DE LAS PLANTILLAS ===")
-if env.ref("l10n_do_accounting.informations", raise_if_not_found=False) is None:
-    print("La localizacion l10n_do_accounting no esta instalada.")
+if env.ref("l10n_do_glecf.informations", raise_if_not_found=False) is None:
+    print("La localizacion l10n_do_glecf no esta instalada.")
 elif instalado:
     print("El modulo ya esta instalado: no hace falta esta comprobacion.")
 else:
@@ -80,14 +80,14 @@ for m in M.search([("state", "=", "installed")], order="name"):
 print()
 print("=== PLANTILLAS DE LA FACTURA ===")
 for nombre in ("informations", "report_invoice_document_inherited", "document_tax_totals", "report_invoice"):
-    vista = env.ref("l10n_do_accounting." + nombre, raise_if_not_found=False)
+    vista = env.ref("l10n_do_glecf." + nombre, raise_if_not_found=False)
     if not vista:
         print("%s: NO EXISTE" % nombre)
         continue
     print("%s: id=%s %s activa=%s fecha=%s" % (nombre, vista.id, origen(vista), vista.active, vista.write_date))
     heredadas(vista)
 
-vista = env.ref("l10n_do_accounting.informations", raise_if_not_found=False)
+vista = env.ref("l10n_do_glecf.informations", raise_if_not_found=False)
 if vista:
     print()
     print("=== ARQUITECTURA FINAL DE informations ===")
