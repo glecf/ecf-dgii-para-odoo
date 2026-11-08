@@ -371,7 +371,7 @@ class AccountMove(models.Model):
             body += " " + _("Motivo: %s") % motivo
         self.message_post(body=body)
         # A rejected bill must not reach the 606. A draft cannot be cancelled
-        # (l10n_do_accounting forbids cancelling a fiscal document never
+        # (l10n_do_glecf forbids cancelling a fiscal document never
         # posted), so it is kept but can no longer be posted; a posted one is
         # left for the person to reverse, saying so.
         if estado == "rechazado":

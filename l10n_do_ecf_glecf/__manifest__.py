@@ -11,14 +11,14 @@ Electrónica y el Decreto 587-24. Los firma y los envía GLECF
 (https://glecf.com) con tu certificado digital. Los datos de tus facturas solo
 salen de Odoo después de que lo aceptes en Ajustes.
 """,
-    "version": "18.0.1.1.5",
+    "version": "18.0.1.2.0",
     "category": "Accounting/Localizations/EDI",
     "author": "GLECF",
     "website": "https://glecf.com",
     "support": "soporte@glecf.com",
     "license": "OPL-1",
     "countries": ["do"],
-    "depends": ["l10n_do_accounting"],
+    "depends": ["l10n_do_glecf"],
     "data": [
         "security/ir.model.access.csv",
         "data/ir_cron.xml",
