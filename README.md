@@ -15,7 +15,7 @@ en Odoo como **comprobantes fiscales electrónicos (e-CF)**, tal como exige la
 
 ## Versiones de Odoo
 
-Funciona en **Odoo 16, 17, 18, 19 y 20**. En la 16 está probado en Community; de la 17 a la 20, en Community y Enterprise. Necesitas Odoo.sh o un servidor propio: Odoo Online no admite
+Funciona en **Odoo 16, 17, 18, 19 y 20, Community y Enterprise**. Necesitas Odoo.sh o un servidor propio: Odoo Online no admite
 módulos externos. Cada versión
 tiene su rama, y esta es la de **Odoo 20**.
 
