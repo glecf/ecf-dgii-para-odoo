@@ -24,7 +24,7 @@ tiene su rama, y esta es la de **Odoo 16**.
 | Odoo 20 | [20.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/20.0) | Incluida |
 | Odoo 19 | [19.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/19.0) | Incluida |
 | Odoo 18 | [18.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/18.0) | Incluida |
-| Odoo 17 | [17.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/17.0) | Se instala aparte: `l10n_do_accounting` |
+| Odoo 17 | [17.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/17.0) | Incluida |
 | Odoo 16 | [16.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/16.0) | Incluida |
 
 ## Cómo funciona
