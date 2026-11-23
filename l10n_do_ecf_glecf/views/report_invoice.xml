@@ -19,18 +19,17 @@
             <attribute name="style" add="padding-left: 13mm; font-size: 9pt; line-height: 1.3" separator=";"/>
         </xpath>
         <xpath expr="//t[@t-if='o.l10n_do_ecf_sign_date']/span" position="attributes">
-            <attribute name="t-out">o._glecf_sign_date_text()</attribute>
+            <attribute name="t-esc">o._glecf_sign_date_text()</attribute>
         </xpath>
         <!-- Amounts and labels of the totals follow this language too, and they
              came out in English with a contact in English (2026-10-30). -->
         <xpath expr="//t[@t-set='o'][1]" position="before">
             <t t-set="lang" t-value="o._glecf_report_lang() or lang"/>
         </xpath>
-        <!-- The last line break of the template pushed a blank second page when
-             the invoice just fills the first one (2026-10-30). -->
-        <xpath expr="//div[@id='right-elements']/../following-sibling::br[1]" position="replace"/>
+        <!-- Odoo 16 has no line break after the totals: the blank second page
+             of Odoo 17 (2026-10-30) does not happen here. -->
         <xpath expr="//span[@id='line_tax_ids']" position="attributes">
-            <attribute name="t-out">', '.join(tax.name for tax in line.tax_ids) if not ecf_representation else '%s %s' % (o.currency_id.symbol, '{0:,.2f}'.format(o._glecf_line_itbis(line)))</attribute>
+            <attribute name="t-esc">', '.join(tax.name for tax in line.tax_ids) if not ecf_representation else '%s %s' % (o.currency_id.symbol, '{0:,.2f}'.format(o._glecf_line_itbis(line)))</attribute>
         </xpath>
         <!-- A minor expense goes to the DGII with the ITBIS inside the price. -->
         <xpath expr="//span[@t-field='line.price_unit']" position="replace">
@@ -84,6 +83,12 @@
 
     <!-- Printed in Spanish whatever the language of the contact. -->
     <template id="report_invoice_ecf" inherit_id="l10n_do_accounting.report_invoice">
+        <xpath expr="//t[@t-call='l10n_do_accounting.report_invoice_document_inherited']" position="attributes">
+            <attribute name="t-lang">o._glecf_report_lang() or lang</attribute>
+        </xpath>
+    </template>
+    <!-- Odoo 16 prints also through «with payments». -->
+    <template id="report_invoice_with_payments_ecf" inherit_id="l10n_do_accounting.report_invoice_with_payments">
         <xpath expr="//t[@t-call='l10n_do_accounting.report_invoice_document_inherited']" position="attributes">
             <attribute name="t-lang">o._glecf_report_lang() or lang</attribute>
         </xpath>

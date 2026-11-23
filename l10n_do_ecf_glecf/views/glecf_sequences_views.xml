@@ -14,7 +14,7 @@
                 <field name="glecf_last_number"/>
                 <field name="l10n_do_ncf_expiration_date" string="Válida hasta"/>
                 <field name="glecf_expiry_confirmed" widget="boolean_toggle"/>
-                <field name="glecf_expiry_unchecked" column_invisible="True"/>
+                <field name="glecf_expiry_unchecked" invisible="1"/>
             </tree>
         </field>
     </record>
