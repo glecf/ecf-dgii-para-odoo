@@ -15,7 +15,7 @@ en Odoo como **comprobantes fiscales electrónicos (e-CF)**, tal como exige la
 
 ## Versiones de Odoo
 
-Funciona en **Odoo 17, 18, 19 y 20, Community y Enterprise**. Necesitas Odoo.sh o un servidor propio: Odoo Online no admite
+Funciona en **Odoo 16, 17, 18, 19 y 20**. En la 16 está probado en Community; de la 17 a la 20, en Community y Enterprise. Necesitas Odoo.sh o un servidor propio: Odoo Online no admite
 módulos externos. Cada versión
 tiene su rama, y esta es la de **Odoo 19**.
 
@@ -24,7 +24,8 @@ tiene su rama, y esta es la de **Odoo 19**.
 | Odoo 20 | [20.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/20.0) | Incluida |
 | Odoo 19 | [19.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/19.0) | Incluida |
 | Odoo 18 | [18.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/18.0) | Incluida |
-| Odoo 17 | [17.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/17.0) | Se instala aparte: `l10n_do_accounting` |
+| Odoo 17 | [17.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/17.0) | Incluida |
+| Odoo 16 | [16.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/16.0) | Incluida |
 
 ## Cómo funciona
 
