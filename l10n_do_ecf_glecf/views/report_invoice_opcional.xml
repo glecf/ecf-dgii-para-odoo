@@ -6,7 +6,7 @@
     <!-- A consumer with no identification: no empty «ID Cliente:» line.
          Located by position: the attribute on that span changes between copies
          of the localization. -->
-    <template id="informations_ecf_cliente" inherit_id="l10n_do_accounting.informations">
+    <template id="informations_ecf_cliente" inherit_id="l10n_do_glecf.informations">
         <xpath expr="//div[@id='receiver_info']/div/strong[1]" position="attributes">
             <attribute name="t-if">vat_len</attribute>
         </xpath>
@@ -20,7 +20,7 @@
          sequence expiry printed is the one sent to the DGII (in the test
          environment, the DGII's 31-12-2028), not the date copied onto the
          invoice when it was created. -->
-    <template id="informations_ecf_vencimiento" inherit_id="l10n_do_accounting.informations">
+    <template id="informations_ecf_vencimiento" inherit_id="l10n_do_glecf.informations">
         <xpath expr="//span[@id='fiscal_exp_date']" position="attributes">
             <attribute name="t-if">o.l10n_latam_use_documents and o.state == 'posted' and o.l10n_do_fiscal_number and o.l10n_latam_document_type_id and (o.move_type in ['out_invoice', 'out_refund'] or o.l10n_latam_document_type_id.doc_code_prefix[1:] in ('41', '43', '47')) and o.l10n_latam_document_type_id.doc_code_prefix[1:] not in ('32', '34', '02')</attribute>
         </xpath>

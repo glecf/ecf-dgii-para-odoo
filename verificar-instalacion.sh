@@ -32,7 +32,13 @@ en_contenedor() {
 [ -z "$CONTENEDOR" ] || en_contenedor "$CONTENEDOR"
 
 PID=""
-for p in $(pgrep -f 'odoo' 2>/dev/null); do
+# Without pgrep (the Odoo 16 Docker image has none), look in /proc.
+if command -v pgrep >/dev/null 2>&1; then
+    PROCESOS=$(pgrep -f 'odoo' 2>/dev/null)
+else
+    PROCESOS=$(for d in /proc/[0-9]*; do grep -qa 'odoo' "$d/cmdline" 2>/dev/null && echo "${d#/proc/}"; done)
+fi
+for p in $PROCESOS; do
     [ "$p" = "$$" ] && continue
     # Un Odoo de un contenedor también se ve desde el servidor: no es este.
     grep -qE 'docker|containerd|kubepods|libpod' /proc/$p/cgroup 2>/dev/null && continue

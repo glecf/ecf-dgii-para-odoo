@@ -8,9 +8,9 @@ PURCHASE_TYPES_ISSUED = ("E41", "E43", "E47")
 
 
 class AccountJournalDocumentType(models.Model):
-    """The e-NCF sequence of each e-CF type, as l10n_do_accounting keeps it.
+    """The e-NCF sequence of each e-CF type, as l10n_do_glecf keeps it.
 
-    l10n_do_accounting fills the expiry date by itself with 31 December of the
+    l10n_do_glecf fills the expiry date by itself with 31 December of the
     next year. The DGII rejects an e-CF whose sequence expiry does not match
     the authorization, so a date nobody has looked at is flagged until
     someone confirms it.
@@ -18,9 +18,6 @@ class AccountJournalDocumentType(models.Model):
 
     _inherit = "l10n_do.account.journal.document_type"
 
-    # Odoo deletes the journals of the generic chart when the company moves to
-    # the Dominican one (2026-11-01).
-    journal_id = fields.Many2one(ondelete="cascade")
     glecf_expiry_confirmed = fields.Boolean(
         string="Revisada",
         help="La fecha de vencimiento se comprobó con la secuencia que autorizó la DGII.",
@@ -48,7 +45,7 @@ class AccountJournalDocumentType(models.Model):
             )
 
     def _compute_glecf_last_number(self):
-        # l10n_do_accounting numbers each type per company, across journals.
+        # l10n_do_glecf numbers each type per company, across journals.
         moves = self.env["account.move"]
         for rec in self:
             last = moves.search([

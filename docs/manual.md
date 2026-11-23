@@ -10,7 +10,7 @@ de Facturación Electrónica y el Decreto 587-24. La firma y el envío los hace
 
 ## Antes de empezar
 
-- Odoo 17 con la localización dominicana `l10n_do_accounting`.
+- Odoo 17. La localización dominicana viene incluida.
 - Una cuenta de GLECF con **plan de pago** (Licencia Anual o plan a medida). El
   Plan Gratis no incluye Odoo: [glecf.com/precios](https://glecf.com/precios/).
 - El certificado digital de la empresa (.p12).
