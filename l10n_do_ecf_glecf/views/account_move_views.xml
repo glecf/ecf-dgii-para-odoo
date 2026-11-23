@@ -24,7 +24,7 @@
             </xpath>
             <!-- A fiscal draft that was never posted cannot be cancelled, only
                  deleted: the button answered with an error (2026-10-30). -->
-            <xpath expr="//header/button[@name='button_cancel'][2]" position="attributes">
+            <xpath expr="//header/button[@name='button_cancel'][@data-hotkey='w'][2]" position="attributes">
                 <attribute name="attrs">{'invisible': ['|', '|', '|', ('id', '=', False), ('state', '!=', 'draft'), ('move_type', '=', 'entry'), '&amp;', '&amp;', ('country_code', '=', 'DO'), ('l10n_latam_use_documents', '=', True), ('posted_before', '=', False)]}</attribute>
             </xpath>
             <xpath expr="//sheet/*[1]" position="before">

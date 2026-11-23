@@ -287,7 +287,7 @@ class AccountMove(models.Model):
 
     def _glecf_received_line(self, company, line):
         tax_ref = TAX_BY_INDICATOR.get(line["indicator"])
-        tax = self.env.ref("account.%s_%s" % (company.id, tax_ref), raise_if_not_found=False) if tax_ref else None
+        tax = self.env.ref("l10n_do.%s_%s" % (company.id, tax_ref), raise_if_not_found=False) if tax_ref else None
         name = line["name"] if not line["description"] else "%s\n%s" % (line["name"], line["description"])
         return {
             "name": name,
@@ -371,7 +371,7 @@ class AccountMove(models.Model):
             body += " " + _("Motivo: %s") % motivo
         self.message_post(body=body)
         # A rejected bill must not reach the 606. A draft cannot be cancelled
-        # (l10n_do_accounting forbids cancelling a fiscal document never
+        # (l10n_do_glecf forbids cancelling a fiscal document never
         # posted), so it is kept but can no longer be posted; a posted one is
         # left for the person to reverse, saying so.
         if estado == "rechazado":

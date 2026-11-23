@@ -15,9 +15,9 @@ en Odoo como **comprobantes fiscales electrónicos (e-CF)**, tal como exige la
 
 ## Versiones de Odoo
 
-Funciona en **Odoo 17, 18, 19 y 20, Community y Enterprise**. Necesitas Odoo.sh o un servidor propio: Odoo Online no admite
+Funciona en **Odoo 16, 17, 18, 19 y 20**. En la 16 está probado en Community; de la 17 a la 20, en Community y Enterprise. Necesitas Odoo.sh o un servidor propio: Odoo Online no admite
 módulos externos. Cada versión
-tiene su rama, y esta es la de **Odoo 17**.
+tiene su rama, y esta es la de **Odoo 16**.
 
 | Tu Odoo | Rama | Localización dominicana |
 |---|---|---|
@@ -25,6 +25,7 @@ tiene su rama, y esta es la de **Odoo 17**.
 | Odoo 19 | [19.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/19.0) | Incluida |
 | Odoo 18 | [18.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/18.0) | Incluida |
 | Odoo 17 | [17.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/17.0) | Se instala aparte: `l10n_do_accounting` |
+| Odoo 16 | [16.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/16.0) | Incluida |
 
 ## Cómo funciona
 
@@ -61,29 +62,17 @@ próxima versión.
 
 ## Instalación
 
-### Odoo 18, 19 y 20
-
-La localización dominicana ya viene incluida: solo necesitas este repositorio,
-en la rama de tu versión. Por ejemplo, para Odoo 20:
+Necesitas Odoo 16. La localización dominicana ya viene en este repositorio:
 
 ```bash
-git clone -b 20.0 https://github.com/glecf/ecf-dgii-para-odoo.git
+git clone -b 16.0 https://github.com/glecf/ecf-dgii-para-odoo.git
 ```
 
-Añade la carpeta al `addons_path` de Odoo, actualiza la lista de aplicaciones e
-instala **e-CF DGII para Odoo**.
+Añade esa carpeta al `addons_path` de Odoo, actualiza la lista de aplicaciones e
+instala **e-CF DGII para Odoo**. La localización se instala con él.
 
-### Odoo 17
-
-Necesitas también la localización dominicana:
-
-```bash
-git clone -b 17.0 https://github.com/indexa-git/l10n-dominicana.git
-git clone -b 17.0 https://github.com/glecf/ecf-dgii-para-odoo.git
-```
-
-Añade las dos carpetas al `addons_path` de Odoo, actualiza la lista de
-aplicaciones e instala **e-CF DGII para Odoo**.
+Si el PDF de la factura sale sin QR o sin diseño, mira la sección «La factura
+impresa» del [manual](docs/manual.md).
 
 ## Verificar antes de instalar
 
@@ -157,4 +146,10 @@ Escribe a soporte@glecf.com.
 
 ## Licencia
 
-Odoo Proprietary License v1.0 (ver `LICENSE` y `COPYRIGHT`).
+El módulo `l10n_do_ecf_glecf`: Odoo Proprietary License v1.0 (ver `LICENSE` y
+`COPYRIGHT`).
+
+La localización `l10n_do_glecf` es una adaptación del código libre
+`l10n_do_accounting` de iterativo LLC e Indexa, bajo su licencia LGPL-3 (ver
+`l10n_do_glecf/LICENSE`). Lleva otro nombre para no confundirse con la original
+ni con otros módulos que usan ese mismo nombre.

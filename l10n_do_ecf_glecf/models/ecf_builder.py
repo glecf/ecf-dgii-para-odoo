@@ -163,7 +163,7 @@ def _id_doc(move, tipo):
 
 def _sequence_expiry(move):
     """The expiry of the sequence as it is set now, not as it was copied to the
-    invoice: l10n_do_accounting copies it only when the type or the journal
+    invoice: l10n_do_glecf copies it only when the type or the journal
     change, so a date corrected later would never reach an invoice already
     posted."""
     sequence = move.journal_id.l10n_do_document_type_ids.filtered(
@@ -393,7 +393,8 @@ def _items_and_totals(move, tipo):
 def _tax_groups(move):
     company = move.company_id
     groups = {
-        name: move.env.ref("account.%s_tax_group_%s" % (company.id, name), raise_if_not_found=False)
+        # Odoo 16: the tax groups of the Dominican chart are shared records.
+        name: move.env.ref("l10n_do.group_%s" % name, raise_if_not_found=False)
         for name in ("itbis", "isr")
     }
     if not groups["itbis"]:

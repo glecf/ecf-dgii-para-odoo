@@ -93,7 +93,7 @@ class AccountMove(models.Model):
     @api.depends("l10n_do_ecf_security_code", "l10n_do_ecf_sign_date", "invoice_date", "glecf_qr_url")
     def _compute_l10n_do_electronic_stamp(self):
         super()._compute_l10n_do_electronic_stamp()
-        # l10n_do_accounting writes the signing time as stored by Odoo, in UTC,
+        # l10n_do_glecf writes the signing time as stored by Odoo, in UTC,
         # four hours off the time in the XML: the DGII check would not match.
         # Fully escaped: the report decodes it once, and the QR must hold the
         # link exactly as GLECF wrote it (a bare space would cut it short).
@@ -188,7 +188,7 @@ class AccountMove(models.Model):
         a line with its ITBIS withheld showed 0.00 (2026-10-30)."""
         if self._glecf_printed_type() == "43":
             return 0.0
-        group = self.env.ref("account.%s_tax_group_itbis" % line.company_id.id)
+        group = self.env.ref("l10n_do.group_itbis")
         taxes = line.tax_ids.filtered(lambda tax: tax.tax_group_id == group and tax.amount > 0)
         price = line.price_unit * (1 - (line.discount or 0.0) / 100)
         computed = taxes.compute_all(price, quantity=line.quantity)
@@ -212,7 +212,7 @@ class AccountMove(models.Model):
             return {"taxed": 0.0, "exempt": sum(lines.mapped("price_subtotal"))}
         if tipo == "46":
             return {"taxed": sum(lines.mapped("price_subtotal")), "exempt": 0.0}
-        group = self.env.ref("account.%s_tax_group_itbis" % self.company_id.id)
+        group = self.env.ref("l10n_do.group_itbis")
         taxed = lines.filtered(
             lambda line: line.tax_ids.filtered(lambda tax: tax.tax_group_id == group and tax.amount > 0)
         )
@@ -619,9 +619,16 @@ class AccountMove(models.Model):
             "|", ("glecf_requested", "=", True), ("company_id.glecf_auto_send", "=", True),
         ]
         pending = moves.search(to_send, order="id", limit=batch)
+        # Never checked first, then the ones checked longest ago. Odoo 16 does
+        # not take «nulls first» in an order.
         waiting = moves.search(
-            [("glecf_state", "=", "sent")], order="glecf_last_check asc nulls first, id", limit=batch * 2
+            [("glecf_state", "=", "sent"), ("glecf_last_check", "=", False)], order="id", limit=batch * 2
         )
+        if len(waiting) < batch * 2:
+            waiting += moves.search(
+                [("glecf_state", "=", "sent"), ("glecf_last_check", "!=", False)],
+                order="glecf_last_check, id", limit=batch * 2 - len(waiting),
+            )
         for move, step, wanted in (
             [(m, "_glecf_send", "to_send") for m in pending]
             + [(m, "_glecf_refresh", "sent") for m in waiting]
