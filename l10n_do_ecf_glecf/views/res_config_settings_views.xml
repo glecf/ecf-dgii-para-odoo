@@ -41,7 +41,7 @@
                                 <span class="o_light_label">Ambiente de la DGII: </span>
                                 <strong><field name="l10n_do_ecf_service_env" class="oe_inline"/></strong>
                             </div>
-                            <div invisible="l10n_do_ecf_service_env == 'eCF' or glecf_issuer_state == 'no'">
+                            <div invisible="l10n_do_ecf_service_env == 'eCF' or glecf_issuer_state in ('no', 'facturador_gratuito')">
                                 <button name="action_glecf_connect" type="object"
                                         string="Cambiar a Producción" class="btn-link ps-0" icon="oi-arrow-right"/>
                                 <div class="text-muted small">
@@ -50,6 +50,9 @@
                             </div>
                             <div class="text-muted small" invisible="glecf_issuer_state != 'no'">
                                 Producción se activa cuando la DGII tenga a tu empresa como emisor electrónico.
+                            </div>
+                            <div class="text-muted small" invisible="glecf_issuer_state != 'facturador_gratuito'">
+                                Producción se activa cuando completes la certificación en GLECF.
                             </div>
                         </div>
                         <div class="mt8" invisible="not glecf_api_key">
@@ -93,6 +96,17 @@
                             Tu empresa todavía no es emisor electrónico ante la DGII. Puedes probar en el
                             ambiente de Pruebas; para facturar con valor fiscal, completa la certificación
                             en GLECF.
+                            <div>
+                                <a href="https://app.glecf.com/certificacion-dgii" target="_blank">
+                                    Empezar la certificación
+                                </a>
+                            </div>
+                        </div>
+                        <div class="mt8 text-warning" invisible="glecf_issuer_state != 'facturador_gratuito'">
+                            Tu empresa factura hoy con el Facturador Gratuito de la DGII. Para facturar
+                            desde Odoo, la DGII pide certificar el sistema nuevo: prueba en el ambiente
+                            de Pruebas y completa la certificación en GLECF. Mientras tanto, sigues
+                            facturando con el Facturador Gratuito.
                             <div>
                                 <a href="https://app.glecf.com/certificacion-dgii" target="_blank">
                                     Empezar la certificación

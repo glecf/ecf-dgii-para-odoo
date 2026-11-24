@@ -84,6 +84,9 @@ class ResCompany(models.Model):
         selection=[
             ("glecf", "Emisor electrónico con GLECF"),
             ("otro_programa", "Emisor electrónico con otro programa"),
+            # GLECF says it since 2026-11-23: the company issues with the DGII's
+            # free tool, and the DGII asks to certify a new system first (CA5032).
+            ("facturador_gratuito", "Emite con el Facturador Gratuito de la DGII"),
             ("no", "Todavía no es emisor electrónico"),
             ("sin_respuesta", "No se pudo comprobar"),
         ],
@@ -203,8 +206,12 @@ class ResCompany(models.Model):
         values["glecf_account_checked"] = fields.Datetime.now()
         if account.get("modulo_ultima_version"):
             values["glecf_module_latest"] = account["modulo_ultima_version"]
-        if account.get("emisor_electronico"):
-            values["glecf_issuer_state"] = account["emisor_electronico"]
+        issuer_state = account.get("emisor_electronico")
+        # A value this copy does not know yet is left out: storing it raised
+        # «Wrong value» and connecting failed (seen with facturador_gratuito,
+        # 2026-11-23). GLECF may add states before every copy updates.
+        if issuer_state and issuer_state in dict(self._fields["glecf_issuer_state"].selection):
+            values["glecf_issuer_state"] = issuer_state
         if account.get("plan_label"):
             values.update({
                 "glecf_plan_label": account["plan_label"],
