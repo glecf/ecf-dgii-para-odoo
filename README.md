@@ -6,9 +6,11 @@ en Odoo como **comprobantes fiscales electrónicos (e-CF)**, tal como exige la
 **Ley núm. 32-23 de Facturación Electrónica** y su reglamento, el **Decreto
 587-24**.
 
-> **Solo con un plan de pago de GLECF** (Licencia Anual o plan a medida). El
-> módulo se descarga gratis, pero el Plan Gratis de GLECF no incluye Odoo.
-> Planes: [glecf.com/precios](https://glecf.com/precios/).
+> **Solo con un plan de pago de GLECF** (Licencia Anual, Plan Pro o plan a
+> medida). El módulo se descarga gratis, también en la
+> [tienda de Odoo](https://apps.odoo.com/apps/modules/20.0/l10n_do_ecf_glecf),
+> pero el Plan Gratis de GLECF no incluye Odoo. Planes:
+> [glecf.com/precios](https://glecf.com/precios/).
 
 > **En mejora continua.** El módulo funciona y se sigue ampliando. El manual,
 > con capturas: [docs/manual.md](docs/manual.md).
@@ -19,19 +21,20 @@ Funciona en **Odoo 16, 17, 18, 19 y 20, Community y Enterprise**. Necesitas Odoo
 módulos externos. Cada versión
 tiene su rama, y esta es la de **Odoo 20**.
 
-| Tu Odoo | Rama | Localización dominicana |
-|---|---|---|
-| Odoo 20 | [20.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/20.0) | Incluida |
-| Odoo 19 | [19.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/19.0) | Incluida |
-| Odoo 18 | [18.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/18.0) | Incluida |
-| Odoo 17 | [17.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/17.0) | Incluida |
-| Odoo 16 | [16.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/16.0) | Incluida |
+| Tu Odoo | Rama | Tienda de Odoo | Localización dominicana |
+|---|---|---|---|
+| Odoo 20 | [20.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/20.0) | [20.0](https://apps.odoo.com/apps/modules/20.0/l10n_do_ecf_glecf) | Incluida |
+| Odoo 19 | [19.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/19.0) | [19.0](https://apps.odoo.com/apps/modules/19.0/l10n_do_ecf_glecf) | Incluida |
+| Odoo 18 | [18.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/18.0) | [18.0](https://apps.odoo.com/apps/modules/18.0/l10n_do_ecf_glecf) | Incluida |
+| Odoo 17 | [17.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/17.0) | [17.0](https://apps.odoo.com/apps/modules/17.0/l10n_do_ecf_glecf) | Incluida |
+| Odoo 16 | [16.0](https://github.com/glecf/ecf-dgii-para-odoo/tree/16.0) | [16.0](https://apps.odoo.com/apps/modules/16.0/l10n_do_ecf_glecf) | Incluida |
 
 ## Cómo funciona
 
 Confirmas la factura en Odoo, y [GLECF](https://glecf.com) la firma con tu
-certificado digital y la envía a la DGII. El certificado se sube desde Odoo, pero
-se guarda en GLECF, no en Odoo.
+certificado digital y la envía a la DGII. El certificado se guarda en GLECF, no
+en Odoo: si ya lo subiste a GLECF (por ejemplo, al certificarte), Odoo lo
+enseña solo; si no, se sube desde los Ajustes de Odoo.
 
 ## Qué hace
 
@@ -52,7 +55,8 @@ se guarda en GLECF, no en Odoo.
   seguridad y fecha y hora de la firma digital. Guarda el XML firmado.
 - Usa los datos de tu empresa en Odoo: nombre, RNC y dirección van al registro
   de GLECF y a cada e-CF.
-- Sube tu certificado digital a GLECF desde los Ajustes de Odoo.
+- Enseña en Ajustes el certificado que GLECF tiene de tu empresa, y deja subirlo
+  desde ahí si todavía no está.
 - Muestra en Ajustes tu plan de GLECF y cuántos comprobantes te quedan este mes.
 - Muestra el estado ante la DGII en cada factura y en el listado.
 - No deja volver a borrador una factura ya enviada a la DGII.
@@ -62,7 +66,12 @@ próxima versión.
 
 ## Instalación
 
-Necesitas Odoo 20. La localización dominicana ya viene en este repositorio:
+**En Odoo.sh:** desde la
+[tienda de Odoo](https://apps.odoo.com/apps/modules/20.0/l10n_do_ecf_glecf),
+con tu sesión, elige tu versión y pulsa *Deploy on Odoo.sh*; o añade este
+repositorio como submódulo de tu rama.
+
+**En un servidor propio:** necesitas Odoo 20. La localización dominicana ya viene en este repositorio:
 
 ```bash
 git clone -b 20.0 https://github.com/glecf/ecf-dgii-para-odoo.git
@@ -93,27 +102,41 @@ contenedores: `sh verificar-instalacion.sh --contenedor NOMBRE`.
 
 ## Puesta en marcha
 
-1. En Odoo, ve a *Ajustes > Facturación > Facturación electrónica (e-CF)* y
-   pulsa *Conectar con GLECF*. Se abre GLECF: inicia sesión y pulsa
-   *Autorizar*. Vuelves a Odoo ya conectado, sin copiar ninguna clave.
+1. En *Ajustes > Usuarios y empresas > Empresas*, abre tu empresa y marca
+   *Es Emisor Electrónico*, debajo del RNC. Sin esa casilla, Odoo ofrece los
+   comprobantes de talonario (B01, B02…) y no los electrónicos (E31, E32…).
+2. Ve a *Ajustes > Facturación > Facturación electrónica (e-CF)* (en
+   Enterprise, *Ajustes > Contabilidad*) y pulsa *Conectar con GLECF*. Se abre
+   GLECF: inicia sesión, elige el **ambiente** y pulsa *Autorizar*. Vuelves a
+   Odoo ya conectado, sin copiar ninguna clave.
+
+   El ambiente se elige ahí, en GLECF, y empieza siempre en *Pruebas
+   internas*. Si la DGII ya te tiene como emisor electrónico y quieres facturar
+   de verdad, elige *Producción*. Si todavía no, Producción no está disponible:
+   conecta en Pruebas y completa la certificación en GLECF.
 
    ¿Aún no tienes cuenta? Pulsa *Crear una cuenta gratis en GLECF*. El registro
    se abre con el nombre, el RNC, la dirección, el teléfono y el correo de tu
-   empresa tal como están en Odoo. Confirma tu correo, contrata la Licencia
-   Anual (el Plan Gratis no incluye Odoo) y vuelve a pulsar *Conectar con
-   GLECF*.
-2. El módulo comprueba que la cuenta de GLECF sea la del mismo RNC que tu
+   empresa tal como están en Odoo. Confirma tu correo, contrata un plan de pago
+   (el Plan Gratis no incluye Odoo) y vuelve a pulsar *Conectar con GLECF*.
+3. El módulo comprueba que la cuenta de GLECF sea la del mismo RNC que tu
    empresa en Odoo: si no, no envía nada, porque la DGII lo rechazaría. Si
    prefieres, también puedes pegar a mano una clave de API creada en GLECF.
-3. Pulsa *Subir certificado*, elige tu certificado digital (.p12) y escribe su
-   contraseña. Va directo a GLECF, que lo guarda cifrado; Odoo no guarda ni el
-   archivo ni la contraseña.
-4. Pulsa *Configurar las secuencias e-NCF* y pon a cada tipo la fecha de
+4. Mira el certificado en Ajustes. Si ya está en GLECF, sale su nombre y su
+   vencimiento, y no hay nada que hacer. Si no, pulsa *Subir certificado*,
+   elige tu certificado digital (.p12) y escribe su contraseña. Va directo a
+   GLECF, que lo guarda cifrado; Odoo no guarda ni el archivo ni la contraseña.
+5. Pulsa *Configurar las secuencias e-NCF* y pon a cada tipo la fecha de
    vencimiento que autorizó la DGII. El primer número de cada tipo se escribe
    en su primera factura; después Odoo sigue solo.
-5. Acepta el envío de tus facturas a GLECF.
-6. Publica tus facturas como siempre. Cada e-CF se firma y se envía a la DGII, y
+6. Acepta el envío de tus facturas a GLECF.
+7. Publica tus facturas como siempre. Cada e-CF se firma y se envía a la DGII, y
    la respuesta vuelve a la factura.
+
+**Antes de pasar a Producción**, lee «Pasar a Producción» en el
+[manual](docs/manual.md): explica qué pasa con las facturas de prueba hechas en
+el mismo Odoo, y por qué cada tipo de comprobante se emite desde un solo
+programa.
 
 ## Direcciones para la DGII
 
