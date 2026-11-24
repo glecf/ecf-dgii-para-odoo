@@ -18,15 +18,16 @@
         El m&#243;dulo est&#225; en mejora continua: funciona y se sigue ampliando.
     </p>
     <p style="font-size:16px;line-height:1.6;margin:0 0 8px;padding:10px 14px;background:#eff6ff;border-radius:6px;color:#1e40af">
-        <strong>Solo con un plan de pago de GLECF</strong> (Licencia Anual o plan a medida). El m&#243;dulo se
+        <strong>Solo con un plan de pago de GLECF</strong> (Licencia Anual, Plan Pro o plan a medida). El m&#243;dulo se
         descarga gratis, pero el Plan Gratis de GLECF no incluye Odoo.
     </p>
 
     <h2 style="font-size:22px;font-weight:600;color:#2563eb;margin:32px 0 12px">C&#243;mo funciona</h2>
     <ol style="font-size:16px;line-height:1.7;padding-left:20px">
-        <li>En Ajustes &gt; Facturaci&#243;n &gt; Facturaci&#243;n electr&#243;nica (e-CF), pulsa Conectar con GLECF, inicia sesi&#243;n y pulsa Autorizar. Vuelves a Odoo ya conectado, sin copiar ninguna clave.</li>
-        <li>&#191;A&#250;n no tienes cuenta? Cr&#233;ala desde la misma pantalla (el registro se abre con el nombre, el RNC y la direcci&#243;n de tu empresa tal como est&#225;n en Odoo) y contrata la Licencia Anual de GLECF.</li>
-        <li>Sube tu certificado digital (.p12) desde la misma pantalla. Va directo a GLECF, cifrado; Odoo no guarda ni el archivo ni su contrase&#241;a.</li>
+        <li>En Ajustes &gt; Usuarios y empresas &gt; Empresas, abre tu empresa y marca Es Emisor Electr&#243;nico, debajo del RNC. Sin esa casilla, Odoo no ofrece los comprobantes electr&#243;nicos.</li>
+        <li>En Ajustes &gt; Facturaci&#243;n &gt; Facturaci&#243;n electr&#243;nica (e-CF) (en Enterprise, Ajustes &gt; Contabilidad), pulsa Conectar con GLECF e inicia sesi&#243;n. All&#237; eliges el ambiente (empieza en Pruebas internas; Producci&#243;n, cuando la DGII ya te tiene como emisor electr&#243;nico) y pulsas Autorizar. Vuelves a Odoo ya conectado, sin copiar ninguna clave.</li>
+        <li>&#191;A&#250;n no tienes cuenta? Cr&#233;ala desde la misma pantalla (el registro se abre con el nombre, el RNC y la direcci&#243;n de tu empresa tal como est&#225;n en Odoo) y contrata un plan de pago de GLECF.</li>
+        <li>Si tu certificado digital ya est&#225; en GLECF (por ejemplo, porque te certificaste con GLECF), Ajustes lo ense&#241;a y no hay nada que subir. Si no, s&#250;belo (.p12) desde la misma pantalla. Va directo a GLECF, cifrado; Odoo no guarda ni el archivo ni su contrase&#241;a.</li>
         <li>Pon a cada secuencia e-NCF la fecha de vencimiento que autoriz&#243; la DGII.</li>
         <li>Acepta el env&#237;o de tus facturas a GLECF.</li>
         <li>Publica tus facturas como siempre. Cada e-CF se firma y se env&#237;a a la DGII, y la respuesta vuelve a la factura.</li>
@@ -66,7 +67,7 @@
         nada en Odoo queda bloqueado.
     </p>
     <p style="font-size:16px;line-height:1.7">
-        El m&#243;dulo se descarga gratis. Para usarlo hace falta un plan de pago de GLECF (Licencia Anual o plan a medida), que cobra GLECF, no este m&#243;dulo. El Plan Gratis de GLECF no incluye Odoo.
+        El m&#243;dulo se descarga gratis. Para usarlo hace falta un plan de pago de GLECF (Licencia Anual, Plan Pro o plan a medida), que cobra GLECF, no este m&#243;dulo. El Plan Gratis de GLECF no incluye Odoo.
     </p>
 
     <h2 style="font-size:22px;font-weight:600;color:#2563eb;margin:32px 0 12px">Requisitos</h2>
@@ -75,7 +76,14 @@
         <li>La localizaci&#243;n fiscal dominicana l10n_do_glecf, incluida.</li>
         <li>Una cuenta de GLECF con plan de pago y un certificado digital v&#225;lido para la DGII.</li>
         <li>Facturas en pesos dominicanos (DOP).</li>
+        <li>Cada tipo de comprobante se emite desde un solo programa: si tambi&#233;n facturas en GLECF, el mismo tipo no se emite desde los dos, porque los n&#250;meros chocar&#237;an.</li>
     </ul>
+
+    <h2 style="font-size:22px;font-weight:600;color:#2563eb;margin:32px 0 12px">Manual</h2>
+    <p style="font-size:16px;line-height:1.7">
+        Los pasos con capturas, y qu&#233; revisar antes de pasar a Producci&#243;n si hiciste facturas de prueba en el mismo Odoo, en el
+        <a href="https://github.com/glecf/ecf-dgii-para-odoo/blob/17.0/docs/manual.md" style="color:#2563eb">manual del m&#243;dulo</a>.
+    </p>
 
     <h2 style="font-size:22px;font-weight:600;color:#2563eb;margin:32px 0 12px">Soporte</h2>
     <p style="font-size:16px;line-height:1.7">
