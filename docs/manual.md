@@ -231,8 +231,13 @@ Tus facturas y ajustes se conservan.
 Esas versiones usaban la localización `l10n_do_accounting`, que se instalaba
 aparte. Desde la 17.0.1.2.0 el módulo trae la suya, `l10n_do_glecf`. Al
 actualizar, la nueva se queda con todo lo que tenía la antigua: tus facturas,
-tus secuencias e-NCF y tus ajustes no cambian. Pero el cambio solo se hace bien
-**con Odoo parado y desde la terminal**, en este orden:
+tus secuencias e-NCF y tus ajustes no cambian. Hay dos formas de hacerlo. Las dos
+empiezan con una copia de seguridad, y conviene hacerlas fuera del horario de
+trabajo.
+
+#### Con terminal (la recomendada)
+
+Con Odoo parado, en este orden:
 
 1. Haz una copia de seguridad de la base de datos.
 2. Descarga la versión nueva, con `git pull` en la carpeta del módulo. **No
@@ -263,6 +268,26 @@ hasta que hagas el paso 5. No se pierde nada: detén Odoo y continúa desde el 4
 
 Después, `l10n_do_accounting` queda como «no instalada». No la vuelvas a
 instalar; puedes quitar su carpeta del `addons_path`.
+
+#### Sin terminal, desde la pantalla de Odoo
+
+Si tu Odoo no tiene terminal (un hospedaje que solo deja subir módulos):
+
+1. Haz una copia de seguridad de la base de datos.
+2. Antes de cambiar nada, escríbenos a soporte@glecf.com con la lista de tus
+   módulos instalados que no son de Odoo. Si alguno necesita
+   `l10n_do_accounting`, la actualización se detiene, y sin terminal volver atrás
+   es más difícil.
+3. Pon la versión nueva del módulo, como subas normalmente los módulos, y
+   reinicia Odoo.
+4. Odoo abrirá con la portada en blanco y las facturas darán error. Es lo
+   esperado: no se ha perdido nada. Ve directo a **Aplicaciones**.
+5. Quita el filtro «Aplicaciones» del buscador, busca «e-CF», abre el menú de
+   los tres puntos de «e-CF DGII para Odoo» y pulsa **Actualizar**.
+6. Espera cerca de un minuto. Odoo vuelve a su portada y todo queda como antes.
+
+Entre el paso 3 y el 6 nadie puede facturar: hazlo cuando no haya nadie
+trabajando.
 
 ¿Dudas antes de empezar? Escríbenos a soporte@glecf.com.
 
