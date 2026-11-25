@@ -1,7 +1,11 @@
+import logging
+
 from lxml import etree
 
 from odoo import api, models
 from odoo.tools import file_open
+
+_logger = logging.getLogger(__name__)
 
 OPCIONALES = "l10n_do_ecf_glecf/views/report_invoice_opcional.xml"
 
@@ -34,7 +38,14 @@ class IrUiView(models.Model):
             # During an install or update Odoo leaves out the views a customer
             # made by hand, so a node they removed looked present and the touch
             # broke every printed invoice (Zennio, 2026-11-25).
-            arch = padre.with_context(load_all_views=True)._glecf_combined_arch()
+            try:
+                arch = padre.with_context(load_all_views=True)._glecf_combined_arch()
+            except Exception as error:
+                # A customer view that no longer fits (it points at something
+                # another view removed) breaks the whole template. The touch
+                # stays off; it must never stop an update (Zennio, 2026-11-25).
+                _logger.warning("GLECF: retoque %s sin aplicar: %s", nombre, error)
+                continue
             xpaths = plantilla.findall("xpath")
             if not all(arch.xpath(xpath.get("expr")) for xpath in xpaths):
                 continue
