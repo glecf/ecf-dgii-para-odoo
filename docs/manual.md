@@ -138,6 +138,16 @@ motivo y elige el **Código Modificación e-CF**. Si eliges *Porcentaje* o
 *Importe*, Odoo crea una línea **sin ITBIS**: un aviso lo dice, y el botón
 **Añadir el ITBIS de la factura original** lo pone antes de confirmar.
 
+**Facturas en dólares (u otra moneda).** Elige la moneda en la factura, como
+siempre en Odoo. La DGII pide los montos en pesos, así que el módulo manda la
+factura convertida con la tasa que usó Odoo, y aparte los importes en dólares
+con su tasa (la sección «Otra moneda» del e-CF). Tu factura impresa puede
+seguir en dólares: la DGII lo permite. Debajo de los totales lleva un recuadro
+con los montos en pesos que recibió la DGII y la tasa. Antes de facturar, pon la tasa del día
+en *Contabilidad > Configuración > Monedas*; sin tasa, la factura no sale.
+Los importes en pesos del e-CF pueden diferir en algún centavo de los de tu
+contabilidad: el e-CF los calcula línea a línea, como los revisa la DGII.
+
 **En el ambiente de Pruebas** la DGII da a todas las secuencias el vencimiento
 31-12-2028; el módulo lo pone solo.
 
