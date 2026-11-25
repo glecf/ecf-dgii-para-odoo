@@ -18,7 +18,7 @@ from odoo.tools import float_compare, float_is_zero, float_round
 
 DR_TZ = pytz.timezone("America/Santo_Domingo")
 
-# e-CF types this version sends: all ten. 46 only in Dominican pesos so far.
+# e-CF types this version sends: all ten, in pesos or in another currency.
 SUPPORTED_TYPES = ("31", "32", "33", "34", "41", "43", "44", "45", "46", "47")
 # Issued by the company itself on a vendor bill: purchases from informal
 # suppliers, minor expenses and payments abroad. In them the "Comprador" of
@@ -49,6 +49,31 @@ ITBIS_INDICATORS = {18.0: "1", 16.0: "2"}
 ZERO_RATE = "3"
 EXEMPT = "4"
 
+# Other currencies (2026-11-25). All the amounts of an e-CF go in Dominican
+# pesos; the ones of the invoice currency go apart, in OtraMoneda and
+# OtraMonedaDetalle («Informe Técnico e-CF v1.0», 11.1.2). The codes are the
+# DGII «Tabla Codificación Monedas»: the yuan is CHY there, CNY in Odoo.
+DGII_CURRENCIES = (
+    "BRL", "CAD", "CHF", "CHY", "XDR", "DKK", "EUR", "GBP", "JPY",
+    "NOK", "SCP", "SEK", "USD", "VEF", "HTG", "MXN", "COP",
+)
+DGII_CURRENCY_CODE = {"CNY": "CHY"}
+# TipoCambio: up to 3 integers and 4 decimals, as the Banco Central sets it.
+MAX_RATE = 999.9999
+# Totales -> OtraMoneda («Formato e-CF v1.0», fields 120-137).
+TOTALS_IN_OTHER_CURRENCY = {
+    "MontoGravadoTotal": "MontoGravadoTotalOtraMoneda",
+    "MontoGravadoI1": "MontoGravado1OtraMoneda",
+    "MontoGravadoI2": "MontoGravado2OtraMoneda",
+    "MontoGravadoI3": "MontoGravado3OtraMoneda",
+    "MontoExento": "MontoExentoOtraMoneda",
+    "TotalITBIS": "TotalITBISOtraMoneda",
+    "TotalITBIS1": "TotalITBIS1OtraMoneda",
+    "TotalITBIS2": "TotalITBIS2OtraMoneda",
+    "TotalITBIS3": "TotalITBIS3OtraMoneda",
+    "MontoTotal": "MontoTotalOtraMoneda",
+}
+
 MAX_ITEM_NAME = 80
 MAX_ITEM_DESCRIPTION = 1000
 MAX_REASON = 90
@@ -66,7 +91,17 @@ def build_ecf_data(move, now=None):
     tipo = ecf_type(move)
     _check_invoice(move, tipo)
 
+    rate = _exchange_rate(move)
     items, totals = _items_and_totals(move, tipo)
+    other_currency = None
+    if rate:
+        # The invoice as it is (its currency) goes to OtraMoneda; the e-CF
+        # itself is the same invoice in pesos.
+        other_currency = _other_currency(move, totals, rate)
+        details = [_other_currency_detail(item) for item in items]
+        items, totals = _items_and_totals(move, tipo, rate=rate)
+        for item, detail in zip(items, details):
+            item["OtraMonedaDetalle"] = detail
     header = {
         "Version": "1.0",
         "IdDoc": _id_doc(move, tipo),
@@ -76,6 +111,8 @@ def build_ecf_data(move, now=None):
     if tipo != "43":
         header["Comprador"] = _buyer(move, tipo)
     header["Totales"] = totals
+    if other_currency:
+        header["OtraMoneda"] = other_currency
     data = {
         "Encabezado": header,
         "DetallesItems": items,
@@ -84,6 +121,19 @@ def build_ecf_data(move, now=None):
     if tipo in ("33", "34"):
         data["InformacionReferencia"] = _reference(move, tipo)
     return data
+
+
+def pesos_totals(move):
+    """The pesos the e-CF declared for an invoice in another currency, with its
+    rate, or {} for an invoice in pesos. The printed invoice shows these, so it
+    says what the DGII received and not the pesos of the accounting, which may
+    differ by cents."""
+    tipo = ecf_type(move)
+    if move.currency_id == move.company_id.currency_id or tipo not in SUPPORTED_TYPES:
+        return {}
+    rate = _exchange_rate(move)
+    totals = _items_and_totals(move, tipo, rate=rate)[1]
+    return dict(totals, TipoCambio="%.4f" % rate)
 
 
 # -- Checks ------------------------------------------------------------------
@@ -95,9 +145,9 @@ def _check_invoice(move, tipo):
             _("%(doc)s: este módulo todavía no envía el tipo de e-CF %(type)s.")
             % {"doc": move.name, "type": tipo or "-"}
         )
-    if move.currency_id != move.company_id.currency_id or move.currency_id.name != "DOP":
+    if move.company_id.currency_id.name != "DOP":
         raise UserError(
-            _("%s: esta versión solo envía facturas en pesos dominicanos (DOP).") % move.name
+            _("%s: la moneda de la empresa debe ser el peso dominicano (DOP).") % move.name
         )
     if not move.l10n_do_fiscal_number:
         raise UserError(_("%s no tiene número e-NCF.") % move.name)
@@ -108,6 +158,56 @@ def _check_invoice(move, tipo):
 
 
 # -- Header ------------------------------------------------------------------
+
+
+def _exchange_rate(move):
+    """Pesos per unit of the invoice currency, with the 4 decimals the DGII
+    takes, or None for an invoice in pesos.
+
+    It is the rate Odoo used to book the invoice: the same one that turned its
+    lines into pesos in the accounting.
+    """
+    if move.currency_id == move.company_id.currency_id:
+        return None
+    code = DGII_CURRENCY_CODE.get(move.currency_id.name, move.currency_id.name)
+    if code not in DGII_CURRENCIES:
+        raise UserError(
+            _("%(doc)s está en %(cur)s, y esa moneda no está en la tabla de monedas de la DGII: "
+              "no se puede declarar en un e-CF. Las admitidas son %(list)s.")
+            % {"doc": move.name, "cur": move.currency_id.name, "list": ", ".join(sorted(DGII_CURRENCIES))}
+        )
+    lines = move.line_ids.filtered(lambda line: line.currency_id == move.currency_id and line.currency_rate)
+    company_per_unit = lines[:1].currency_rate
+    rate = float_round(1 / company_per_unit, precision_digits=4) if company_per_unit else 0.0
+    if float_compare(rate, 0, precision_digits=4) <= 0 or float_compare(rate, 1, precision_digits=4) == 0:
+        raise UserError(
+            _("%(doc)s está en %(cur)s y no tiene tasa de cambio a pesos. Pon la tasa del día en "
+              "Contabilidad > Configuración > Monedas y vuelve a confirmar la factura.")
+            % {"doc": move.name, "cur": move.currency_id.name}
+        )
+    if rate > MAX_RATE:
+        raise UserError(
+            _("%(doc)s tiene una tasa de %(rate)s, y la DGII solo admite hasta 999.9999. Revisa la "
+              "tasa de %(cur)s.") % {"doc": move.name, "rate": rate, "cur": move.currency_id.name}
+        )
+    return rate
+
+
+def _other_currency(move, totals, rate):
+    code = DGII_CURRENCY_CODE.get(move.currency_id.name, move.currency_id.name)
+    other = {"TipoMoneda": code, "TipoCambio": "%.4f" % rate}
+    for key, target in TOTALS_IN_OTHER_CURRENCY.items():
+        if key in totals:
+            other[target] = totals[key]
+    return other
+
+
+def _other_currency_detail(item):
+    detail = {"PrecioOtraMoneda": item["PrecioUnitarioItem"]}
+    if item.get("DescuentoMonto"):
+        detail["DescuentoOtraMoneda"] = item["DescuentoMonto"]
+    detail["MontoItemOtraMoneda"] = item["MontoItem"]
+    return detail
 
 
 def _id_doc(move, tipo):
@@ -189,12 +289,13 @@ def _email(text):
 def _buyer_id_required(move, tipo):
     if tipo in TYPES_WITH_BUYER_ID:
         return True
+    # In pesos, also for an invoice in another currency.
     if tipo == "32":
-        return abs(move.amount_total) >= CONSUMER_ID_FROM
+        return abs(move.amount_total_signed) >= CONSUMER_ID_FROM
     if tipo in ("33", "34"):
         origin = _origin(move)
         if ecf_type(origin) == "32":
-            return abs(origin.amount_total) >= CONSUMER_ID_FROM
+            return abs(origin.amount_total_signed) >= CONSUMER_ID_FROM
         return True
     return False
 
@@ -289,9 +390,19 @@ def _foreign_buyer(move, partner, tipo):
 # -- Lines and totals --------------------------------------------------------
 
 
-def _items_and_totals(move, tipo):
+def _items_and_totals(move, tipo, rate=None):
+    """The lines and totals of the e-CF, in the invoice currency; with `rate`,
+    the same invoice in pesos.
+
+    In pesos every unit price is the original one by the rate, with 4
+    decimals, and the rest is computed from it as the DGII checks it: each line
+    is its price by its quantity less its discount, the ITBIS is the rate on
+    the taxed amount, and the total is the sum of its parts. It may differ by
+    cents from the pesos of the accounting, which rounds otherwise; the e-CF
+    has to add up by itself.
+    """
     company = move.company_id
-    currency = move.currency_id
+    currency = move.currency_id if not rate else company.currency_id
     groups = _tax_groups(move)
 
     lines = move.invoice_line_ids.filtered(lambda line: line.display_type == "product")
@@ -315,19 +426,25 @@ def _items_and_totals(move, tipo):
                   "nota de crédito.") % {"doc": move.name, "line": line.name}
             )
 
-        net = currency.round(abs(line.price_subtotal))
+        net = move.currency_id.round(abs(line.price_subtotal))
         if tipo == "43":
             # The ITBIS of a minor expense cannot be claimed: it goes inside
             # the price, and the whole line is exempt.
-            net = currency.round(abs(line.price_total))
+            net = move.currency_id.round(abs(line.price_total))
         if line.discount and float_compare(line.discount, 100, precision_digits=2) >= 0:
             raise UserError(_("%(doc)s: la línea «%(line)s» tiene un descuento del 100%%.") % {"doc": move.name, "line": line.name})
         # Minor expenses and payments abroad have no discounts in their
         # format: the line goes at its net price.
         with_discount = tipo not in ("43", "47") and line.discount
-        gross = currency.round(net / (1 - (line.discount or 0) / 100)) if with_discount else net
+        gross = move.currency_id.round(net / (1 - (line.discount or 0) / 100)) if with_discount else net
+        if rate:
+            price = float_round(gross / quantity * rate, precision_digits=4)
+            gross = currency.round(price * quantity)
+            net = currency.round(gross * (1 - (line.discount or 0) / 100)) if with_discount else gross
+            unit_price = _number(price, 4)
+        else:
+            unit_price = _unit_price(gross, quantity)
         discount = currency.round(gross - net)
-        unit_price = _unit_price(gross, quantity)
 
         service = line.product_id.type == "service" or not line.product_id
         item = {
@@ -335,7 +452,7 @@ def _items_and_totals(move, tipo):
             "IndicadorFacturacion": indicator,
         }
         if tipo in TYPES_WITH_WITHHOLDING:
-            item["Retencion"] = _withholding(move, line, tipo, groups, indicator, service, withheld)
+            item["Retencion"] = _withholding(move, line, tipo, groups, indicator, service, withheld, rate)
         item.update({
             **_item_names(line.name or line.product_id.display_name),
             "IndicadorBienoServicio": "2" if service or tipo == "47" else "1",
@@ -355,7 +472,16 @@ def _items_and_totals(move, tipo):
         items.append(item)
         bases[indicator] += net
 
-    taxes = _itbis_amounts(move, groups["itbis"]) if tipo != "43" else {"1": 0.0, "2": 0.0}
+    if tipo == "43":
+        taxes = {"1": 0.0, "2": 0.0}
+    elif rate:
+        # What the DGII checks: TotalITBIS1 = MontoGravadoI1 x 18 %.
+        taxes = {
+            indicator: currency.round(bases[indicator] * float(percent) / 100)
+            for indicator, percent in (("1", "18"), ("2", "16"))
+        }
+    else:
+        taxes = _itbis_amounts(move, groups["itbis"])
     totals = {}
     taxed = bases["1"] + bases["2"] + bases[ZERO_RATE]
     if not float_is_zero(taxed, precision_digits=2):
@@ -380,7 +506,9 @@ def _items_and_totals(move, tipo):
     # Odoo takes the withholdings off the invoice total; the e-CF total does
     # not: they are reported apart.
     odoo_total = currency.round(abs(move.amount_total) + withheld["itbis"] + withheld["isr"])
-    if float_compare(total, odoo_total, precision_digits=2) != 0:
+    # In pesos the total is the sum of its parts: the check against Odoo is
+    # done on the invoice currency.
+    if not rate and float_compare(total, odoo_total, precision_digits=2) != 0:
         raise UserError(
             _("%(doc)s: el total del e-CF (%(ecf)s) no cuadra con el de la factura (%(odoo)s). "
               "Esta versión solo admite ITBIS 18%%, ITBIS 16%%, líneas exentas y retenciones de ITBIS e ISR.")
@@ -468,7 +596,7 @@ def _line_indicator(move, line, tipo, groups):
     return ITBIS_INDICATORS[rated.amount]
 
 
-def _withholding(move, line, tipo, groups, indicator, service, withheld):
+def _withholding(move, line, tipo, groups, indicator, service, withheld, rate=None):
     """The Retencion of a line of a purchase (41) or a payment abroad (47).
 
     The amounts are the ones Odoo computes with the withholding taxes of the
@@ -487,7 +615,10 @@ def _withholding(move, line, tipo, groups, indicator, service, withheld):
             if tax:
                 key = "itbis" if tax.tax_group_id == groups["itbis"] else "isr"
                 amounts[key] += abs(result["amount"])
-    amounts = {key: currency.round(value) for key, value in amounts.items()}
+    if rate:
+        amounts = {key: move.company_id.currency_id.round(value * rate) for key, value in amounts.items()}
+    else:
+        amounts = {key: currency.round(value) for key, value in amounts.items()}
     if indicator == EXEMPT and not float_is_zero(amounts["itbis"], precision_digits=2):
         raise UserError(
             _("%(doc)s: la línea «%(line)s» retiene ITBIS pero no lleva ITBIS. Quita la retención de "
