@@ -59,6 +59,25 @@ for nombre in ("l10n_do_glecf", MODULO, "web_studio"):
     print("Modulo %s: estado=%s instalada=%s archivo=%s ruta=%s" % (
         nombre, m.state, m.latest_version, m.installed_version, get_module_path(nombre)))
 
+vieja = M.search([("name", "=", "l10n_do_accounting"), ("state", "=", "installed")], limit=1)
+if vieja:
+    # Hasta la 17.0.1.1.5 el modulo usaba l10n_do_accounting. La version nueva se
+    # queda con sus datos al actualizar; otro modulo que la necesite lo impide.
+    print()
+    print("=== PASO DESDE LA VERSION ANTIGUA ===")
+    print("Localizacion antigua instalada: l10n_do_accounting %s" % vieja.installed_version)
+    otros = env["ir.module.module.dependency"].sudo().search([
+        ("name", "=", "l10n_do_accounting"),
+        ("module_id.state", "=", "installed"),
+        ("module_id.name", "not in", (MODULO, "l10n_do_glecf")),
+    ]).mapped("module_id.name")
+    if otros:
+        print("RESULTADO: NO ACTUALIZAR TODAVIA. Estos modulos necesitan l10n_do_accounting: %s" % ", ".join(sorted(otros)))
+        print("Escribe a soporte@glecf.com con este informe.")
+    else:
+        print("RESULTADO: SE PUEDE ACTUALIZAR. Ningun otro modulo depende de l10n_do_accounting.")
+        print("Sigue los pasos de «Si vienes de la 17.0.1.1.5 o anterior» del manual.")
+
 instalado = M.search([("name", "=", MODULO), ("state", "=", "installed")], limit=1)
 print()
 print("=== COMPATIBILIDAD DE LAS PLANTILLAS ===")

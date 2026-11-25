@@ -80,10 +80,11 @@ git clone -b 17.0 https://github.com/glecf/ecf-dgii-para-odoo.git
 Añade esa carpeta al `addons_path` de Odoo, actualiza la lista de aplicaciones e
 instala **e-CF DGII para Odoo**. La localización se instala con él.
 
-**Si ya lo tenías instalado en Odoo 17 antes del 23 de noviembre de 2026**, tu
+**Si ya lo tenías instalado en Odoo 17 con la versión 17.0.1.1.5 o anterior**, tu
 Odoo usa la localización `l10n_do_accounting`, que se instalaba aparte. Esta
-versión trae la suya, `l10n_do_glecf`, y no sustituye sola a la anterior: antes
-de actualizar, escríbenos a soporte@glecf.com.
+versión trae la suya, `l10n_do_glecf`, y se queda con los datos de la anterior al
+actualizar, pero hay que hacerlo con Odoo parado y desde la terminal: sigue «Si
+vienes de la 17.0.1.1.5 o anterior» del [manual](docs/manual.md#actualizar-el-módulo).
 
 Si el PDF de la factura sale sin QR o sin diseño, mira la sección «La factura
 impresa» del [manual](docs/manual.md).

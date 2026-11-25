@@ -212,14 +212,9 @@ envías, la DGII lo da por aceptado cuando lo declaras en el 606.
 
 ## Actualizar el módulo
 
-> **Si tu versión es la 17.0.1.1.5 o anterior, no actualices todavía.** Esas
-> versiones usan la localización `l10n_do_accounting`, instalada aparte. Desde la
-> 17.0.1.2.0 el módulo trae la suya, `l10n_do_glecf`, y el cambio no se hace
-> solo: seguir los pasos de abajo puede dejar tu Odoo con las dos localizaciones
-> a la vez. Tu versión actual sigue funcionando. Escríbenos a soporte@glecf.com y
-> te acompañamos en el cambio.
->
-> La versión que tienes se ve en Aplicaciones, en «e-CF DGII para Odoo».
+> **Si tu versión es la 17.0.1.1.5 o anterior**, no sigas los pasos de aquí
+> abajo: ve a «Si vienes de la 17.0.1.1.5 o anterior», más adelante. La versión
+> que tienes se ve en Aplicaciones, en «e-CF DGII para Odoo».
 
 Tu copia del módulo no se actualiza sola. Cuando hay una versión nueva, en Ajustes
 > Facturación aparece el aviso «Hay una versión nueva del módulo». Para actualizar,
@@ -229,8 +224,47 @@ quien administra tu servidor:
 2. Reinicia Odoo.
 3. En Aplicaciones, busca «e-CF DGII para Odoo» y pulsa **Actualizar**.
 
-Tus facturas y ajustes se conservan (si vienes de la 17.0.1.1.5 o anterior, lee
-antes el aviso de arriba).
+Tus facturas y ajustes se conservan.
+
+### Si vienes de la 17.0.1.1.5 o anterior
+
+Esas versiones usaban la localización `l10n_do_accounting`, que se instalaba
+aparte. Desde la 17.0.1.2.0 el módulo trae la suya, `l10n_do_glecf`. Al
+actualizar, la nueva se queda con todo lo que tenía la antigua: tus facturas,
+tus secuencias e-NCF y tus ajustes no cambian. Pero el cambio solo se hace bien
+**con Odoo parado y desde la terminal**, en este orden:
+
+1. Haz una copia de seguridad de la base de datos.
+2. Descarga la versión nueva, con `git pull` en la carpeta del módulo. **No
+   reinicies Odoo todavía.**
+3. Comprueba que se puede actualizar. En la carpeta del módulo:
+
+   ```bash
+   sh verificar-instalacion.sh
+   ```
+
+   En «PASO DESDE LA VERSION ANTIGUA» debe decir «SE PUEDE ACTUALIZAR». Si dice
+   que otro módulo necesita `l10n_do_accounting`, no sigas: vuelve a la versión
+   anterior (`git checkout` del commit que tenías) y escríbenos.
+4. Detén Odoo.
+5. Actualiza desde la terminal, con tu archivo de configuración y el nombre de tu
+   base:
+
+   ```bash
+   odoo -c /etc/odoo/odoo.conf -d TU_BASE -u l10n_do_ecf_glecf --stop-after-init
+   ```
+
+   En el registro debe salir «l10n_do_glecf took over … records of
+   l10n_do_accounting» y ningún error.
+6. Arranca Odoo.
+
+Si reinicias Odoo entre los pasos 2 y 5, Odoo abre con un error en pantalla
+hasta que hagas el paso 5. No se pierde nada: detén Odoo y continúa desde el 4.
+
+Después, `l10n_do_accounting` queda como «no instalada». No la vuelvas a
+instalar; puedes quitar su carpeta del `addons_path`.
+
+¿Dudas antes de empezar? Escríbenos a soporte@glecf.com.
 
 ## Ayuda
 
