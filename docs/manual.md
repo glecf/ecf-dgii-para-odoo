@@ -222,6 +222,16 @@ quien administra tu servidor:
 
 Tus facturas y ajustes se conservan.
 
+Si `git pull` contesta «Need to specify how to reconcile divergent branches»
+(puede pasar si descargaste el módulo el 24 o el 25 de noviembre de 2026), tu
+copia no tiene ningún problema: descarga la versión publicada con estas dos
+órdenes, en la carpeta del módulo, y sigue con el paso 2.
+
+```bash
+git fetch origin
+git reset --hard origin/16.0
+```
+
 ## Ayuda
 
 Escribe a soporte@glecf.com.
