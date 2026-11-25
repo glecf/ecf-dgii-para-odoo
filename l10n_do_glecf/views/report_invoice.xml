@@ -249,7 +249,9 @@
         </t>
 
         <t t-set="address" position="replace"/>
-        <xpath expr="//h2" position="replace"/>
+        <!-- Odoo's own title (the h2) is taken off by l10n_do_ecf_glecf only
+             where it exists: a customer view that changes it stopped every
+             invoice from printing (2026-11-25). -->
 
         <!-- replace information section and use dominican style -->
         <div id="informations" position="replace">
