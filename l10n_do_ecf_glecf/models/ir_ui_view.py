@@ -30,7 +30,11 @@ class IrUiView(models.Model):
             vista = views.env.ref("l10n_do_ecf_glecf." + nombre, raise_if_not_found=False)
             if vista:
                 vista.active = False
-            arch = padre._glecf_combined_arch()
+                vista.flush_recordset(["active"])
+            # During an install or update Odoo leaves out the views a customer
+            # made by hand, so a node they removed looked present and the touch
+            # broke every printed invoice (Zennio, 2026-11-25).
+            arch = padre.with_context(load_all_views=True)._glecf_combined_arch()
             xpaths = plantilla.findall("xpath")
             if not all(arch.xpath(xpath.get("expr")) for xpath in xpaths):
                 continue

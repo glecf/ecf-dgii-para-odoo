@@ -28,4 +28,11 @@
             <span id="ecf_exp_date" t-out="o._glecf_sequence_expiry_text()"/>
         </xpath>
     </template>
+
+    <!-- Odoo's title of the invoice goes away: the Dominican template prints its
+         own. Optional, because a customer may have changed or removed it, and
+         then the whole invoice failed to print (2026-11-25). -->
+    <template id="report_invoice_sin_titulo_odoo" inherit_id="l10n_do_glecf.report_invoice_document_inherited">
+        <xpath expr="//h2" position="replace"/>
+    </template>
 </odoo>

@@ -8,7 +8,7 @@
     "category": "Localization",
     "license": "LGPL-3",
     "website": "https://github.com/glecf/ecf-dgii-para-odoo",
-    "version": "17.0.2.0.1",
+    "version": "17.0.2.0.2",
     "pre_init_hook": "pre_init_hook",
     "post_init_hook": "post_init_hook",
     "countries": ["do"],
