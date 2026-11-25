@@ -25,15 +25,43 @@ class AccountJournalDocumentType(models.Model):
     glecf_expiry_unchecked = fields.Boolean(compute="_compute_glecf_expiry_unchecked")
     glecf_last_number = fields.Char(string="Último e-NCF usado", compute="_compute_glecf_last_number")
 
+    def _glecf_same_type(self):
+        """The rows of this e-CF type in the company: the localization keeps
+        one per journal, but the DGII authorizes one sequence per type."""
+        self.ensure_one()
+        return self.search([
+            ("company_id", "=", self.company_id.id),
+            ("l10n_latam_document_type_id", "=", self.l10n_latam_document_type_id.id),
+        ])
+
+    def _glecf_reference(self):
+        """Of the rows of one type, the one that tells its expiry: the last one
+        somebody confirmed or, if nobody has, the oldest."""
+        confirmed = self.filtered("glecf_expiry_confirmed").sorted(
+            lambda row: (row.write_date or row.create_date, row.id), reverse=True
+        )
+        return (confirmed or self.sorted("id"))[:1]
+
     @api.model
     def _glecf_issued_domain(self, companies):
-        return [
+        """One row per type (2026-11-24). With four sales journals every type
+        showed four times, and a date typed on one row did not reach an invoice
+        made with another journal."""
+        rows = self.search([
             ("company_id", "in", companies.ids),
             ("l10n_latam_document_type_id.doc_code_prefix", "=like", "E%"),
             "|",
             ("journal_id.type", "=", "sale"),
             ("l10n_latam_document_type_id.doc_code_prefix", "in", PURCHASE_TYPES_ISSUED),
-        ]
+        ])
+        by_type = {}
+        for row in rows:
+            key = (row.company_id.id, row.l10n_latam_document_type_id.id)
+            by_type[key] = by_type.get(key, self.browse()) | row
+        references = self.browse()
+        for same_type in by_type.values():
+            references |= same_type._glecf_reference()
+        return [("id", "in", references.ids)]
 
     @api.depends("l10n_do_ncf_expiration_date", "glecf_expiry_confirmed")
     def _compute_glecf_expiry_unchecked(self):
@@ -56,8 +84,39 @@ class AccountJournalDocumentType(models.Model):
             ], order="l10n_do_fiscal_number desc", limit=1)
             rec.glecf_last_number = last.l10n_do_fiscal_number or False
 
+    def _glecf_is_ecf(self):
+        return (self.l10n_latam_document_type_id.doc_code_prefix or "").startswith("E")
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        rows = super().create(vals_list)
+        # A new journal takes the expiry already set for the type, not the
+        # date the localization makes up.
+        for row in rows.filtered(lambda r: r._glecf_is_ecf()):
+            reference = (row._glecf_same_type() - rows)._glecf_reference()
+            if reference:
+                super(AccountJournalDocumentType, row).write({
+                    "l10n_do_ncf_expiration_date": reference.l10n_do_ncf_expiration_date,
+                    "glecf_expiry_confirmed": reference.glecf_expiry_confirmed,
+                })
+        return rows
+
     def write(self, vals):
         # Whoever changes the date has looked at it.
         if "l10n_do_ncf_expiration_date" in vals and "glecf_expiry_confirmed" not in vals:
             vals = dict(vals, glecf_expiry_confirmed=True)
-        return super().write(vals)
+        res = super().write(vals)
+        # The expiry belongs to the type: it goes to every journal.
+        shared = {
+            name: vals[name]
+            for name in ("l10n_do_ncf_expiration_date", "glecf_expiry_confirmed")
+            if name in vals
+        }
+        if shared:
+            others = self.browse()
+            for row in self.filtered(lambda r: r._glecf_is_ecf()):
+                others |= row._glecf_same_type()
+            others -= self
+            if others:
+                super(AccountJournalDocumentType, others).write(shared)
+        return res
