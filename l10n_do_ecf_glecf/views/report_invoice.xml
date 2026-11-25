@@ -92,4 +92,39 @@
             <attribute name="t-lang">o._glecf_report_lang() or lang</attribute>
         </xpath>
     </template>
+    <!-- An invoice in another currency: Odoo prints the pesos of its
+         accounting, which may differ by cents from the e-CF. The printed
+         invoice says what the DGII received (2026-11-25). -->
+    <template id="tax_totals_company_currency_ecf"
+              inherit_id="account.document_tax_totals_company_currency_template">
+        <xpath expr="//t[@t-set='currency']" position="before">
+            <t t-set="glecf_dop" t-value="o._glecf_dop_totals()"/>
+        </xpath>
+        <xpath expr="//div[hasclass('totals_taxes_company_currency')]" position="attributes">
+            <attribute name="t-if">not glecf_dop</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('totals_taxes_company_currency')]" position="after">
+            <div t-if="glecf_dop" class="mb-2 mt-3 border p-2 avoid-page-break-inside">
+                <p class="mb-1">Montos en pesos (DOP) del e-CF · tasa&#160;<span t-out="glecf_dop['rate']"/></p>
+                <table class="table table-sm table-borderless mb-0">
+                    <tr t-if="glecf_dop['taxed']">
+                        <td>Monto gravado</td>
+                        <td class="text-end"><span class="text-nowrap" t-out="glecf_dop['taxed']" t-options='{"widget": "monetary", "display_currency": o.company_currency_id}'/></td>
+                    </tr>
+                    <tr t-if="glecf_dop['exempt']">
+                        <td>Monto exento</td>
+                        <td class="text-end"><span class="text-nowrap" t-out="glecf_dop['exempt']" t-options='{"widget": "monetary", "display_currency": o.company_currency_id}'/></td>
+                    </tr>
+                    <tr t-if="glecf_dop['itbis']">
+                        <td>ITBIS</td>
+                        <td class="text-end"><span class="text-nowrap" t-out="glecf_dop['itbis']" t-options='{"widget": "monetary", "display_currency": o.company_currency_id}'/></td>
+                    </tr>
+                    <tr class="border-black">
+                        <td><strong>Total</strong></td>
+                        <td class="text-end"><strong class="text-nowrap" t-out="glecf_dop['total']" t-options='{"widget": "monetary", "display_currency": o.company_currency_id}'/></td>
+                    </tr>
+                </table>
+            </div>
+        </xpath>
+    </template>
 </odoo>

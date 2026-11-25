@@ -151,6 +151,9 @@ class AccountMoveLine(models.Model):
             rate = (self.currency_id + self.company_id.currency_id)._get_rates(
                 self.company_id, self.move_id.date
             ).get(self.currency_id.id) or 1
+            # Odoo 20 gives (rate, date of the rate); earlier versions, the rate.
+            if isinstance(rate, tuple):
+                rate = rate[0] or 1
             currency_vals = {}
             for k, v in result.items():
                 currency_vals[k + "_currency"] = v / rate

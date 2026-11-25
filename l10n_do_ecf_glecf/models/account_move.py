@@ -20,6 +20,7 @@ from .ecf_builder import (
     _sequence_expiry,
     build_ecf_data,
     ecf_type,
+    pesos_totals,
 )
 from .glecf_client import GlecfError
 
@@ -148,6 +149,26 @@ class AccountMove(models.Model):
             and ecf_type(self) in SUPPORTED_TYPES
             and self.move_type in self._glecf_move_types()
         )
+
+    def _glecf_dop_totals(self):
+        """For the printed invoice in another currency: the pesos declared to
+        the DGII, or {} (an invoice in pesos, or one the module does not send).
+        Odoo would print the pesos of its accounting instead, which may differ
+        by cents from the e-CF (2026-11-25)."""
+        self.ensure_one()
+        if self.currency_id == self.company_id.currency_id or not self._glecf_applies():
+            return {}
+        try:
+            totals = pesos_totals(self)
+        except UserError:
+            return {}
+        return {
+            "rate": totals["TipoCambio"],
+            "taxed": float(totals.get("MontoGravadoTotal") or 0),
+            "itbis": float(totals.get("TotalITBIS") or 0),
+            "exempt": float(totals.get("MontoExento") or 0),
+            "total": float(totals["MontoTotal"]),
+        }
 
     def _glecf_move_types(self):
         """Sales go out on customer invoices and notes; purchases, minor

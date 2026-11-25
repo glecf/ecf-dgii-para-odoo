@@ -8,7 +8,7 @@
     "category": "Localization",
     "license": "LGPL-3",
     "website": "https://github.com/glecf/ecf-dgii-para-odoo",
-    "version": "20.0.2.0.0",
+    "version": "20.0.2.0.1",
     "countries": ["do"],
     # any module necessary for this one to work correctly
     "depends": ["l10n_latam_invoice_document", "l10n_do"],
