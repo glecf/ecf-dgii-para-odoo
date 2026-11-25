@@ -61,8 +61,9 @@ enseña solo; si no, se sube desde los Ajustes de Odoo.
 - Muestra el estado ante la DGII en cada factura y en el listado.
 - No deja volver a borrador una factura ya enviada a la DGII.
 
-Todo en pesos dominicanos (DOP). Las facturas en otra moneda llegarán en una
-próxima versión.
+Factura en pesos dominicanos o en otra moneda (dólares, euros…): una factura en
+otra moneda se declara a la DGII en pesos con la tasa de Odoo, y lleva aparte
+sus importes originales, como pide la DGII.
 
 ## Instalación
 
