@@ -91,9 +91,10 @@ Portal de Certificación.
 
 ## 5. Las secuencias e-NCF
 
-**Configurar las secuencias e-NCF** abre una lista con todos los tipos. Pon a
-cada uno la fecha de vencimiento que autorizó la DGII. En amarillo, las que aún
-tienen la fecha que puso Odoo.
+**Configurar las secuencias e-NCF** abre una lista con una fila por cada tipo de
+comprobante. Pon a cada uno la fecha de vencimiento que autorizó la DGII: vale
+para ese tipo en todos tus diarios. En amarillo, las que aún tienen la fecha que
+puso Odoo; si esa fecha es la correcta, activa «Revisada».
 
 ![Secuencias e-NCF](img/04-secuencias.png)
 
