@@ -212,6 +212,15 @@ envías, la DGII lo da por aceptado cuando lo declaras en el 606.
 
 ## Actualizar el módulo
 
+> **Si tu versión es la 17.0.1.1.5 o anterior, no actualices todavía.** Esas
+> versiones usan la localización `l10n_do_accounting`, instalada aparte. Desde la
+> 17.0.1.2.0 el módulo trae la suya, `l10n_do_glecf`, y el cambio no se hace
+> solo: seguir los pasos de abajo puede dejar tu Odoo con las dos localizaciones
+> a la vez. Tu versión actual sigue funcionando. Escríbenos a soporte@glecf.com y
+> te acompañamos en el cambio.
+>
+> La versión que tienes se ve en Aplicaciones, en «e-CF DGII para Odoo».
+
 Tu copia del módulo no se actualiza sola. Cuando hay una versión nueva, en Ajustes
 > Facturación aparece el aviso «Hay una versión nueva del módulo». Para actualizar,
 quien administra tu servidor:
@@ -220,7 +229,8 @@ quien administra tu servidor:
 2. Reinicia Odoo.
 3. En Aplicaciones, busca «e-CF DGII para Odoo» y pulsa **Actualizar**.
 
-Tus facturas y ajustes se conservan.
+Tus facturas y ajustes se conservan (si vienes de la 17.0.1.1.5 o anterior, lee
+antes el aviso de arriba).
 
 ## Ayuda
 
