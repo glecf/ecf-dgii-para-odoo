@@ -166,9 +166,13 @@ def _sequence_expiry(move):
     invoice: l10n_do_glecf copies it only when the type or the journal
     change, so a date corrected later would never reach an invoice already
     posted."""
-    sequence = move.journal_id.l10n_do_document_type_ids.filtered(
-        lambda doc: doc.l10n_latam_document_type_id == move.l10n_latam_document_type_id
-    )[:1]
+    # Of the type, not of the journal of the invoice (2026-11-24): the DGII
+    # authorizes one sequence per type, and a date typed on the row of another
+    # journal never reached the e-CF.
+    sequence = move.env["l10n_do.account.journal.document_type"].search([
+        ("company_id", "=", move.company_id.id),
+        ("l10n_latam_document_type_id", "=", move.l10n_latam_document_type_id.id),
+    ])._glecf_reference()
     return sequence.l10n_do_ncf_expiration_date or move.l10n_do_ncf_expiration_date
 
 
